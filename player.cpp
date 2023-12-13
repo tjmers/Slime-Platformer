@@ -14,9 +14,10 @@ void Player::init(Graphics& g)
 
 Player::Player(const float x, const float y, const int left_limit, const int right_limit, const int top_limit, const int bottom_limit)
     : position(x, y), velocity(0.0f, 0.0f), starting_position(x, y), standing_on(nullptr), updates_since_falling(10), // arbritray number bigger than coyote frames
-      left_limit(left_limit), right_limit(right_limit - WIDTH), top_limit(top_limit), bottom_limit(bottom_limit - HEIGHT), sprite_cycle(0), facing(Direction::LEFT)
+      left_limit(left_limit), right_limit(right_limit - WIDTH), top_limit(top_limit), bottom_limit(bottom_limit - HEIGHT), sprite_cycle(0), facing(Direction::LEFT),
+      sliding_left(nullptr), sliding_right(nullptr)
     {
-        std::cout << "PLAYER INITIALIZED\n";
+        // std::cout << "PLAYER INITIALIZED\n";
     }
 
 
@@ -26,6 +27,8 @@ void Player::reset()
     velocity.x = 0.0f;
     velocity.y = 0.0f;
     standing_on = nullptr;
+    sliding_left = nullptr;
+    sliding_right = nullptr;
     updates_since_falling = 10;
 }
 
@@ -47,16 +50,20 @@ void Player::draw(Graphics& g) const
 
 Vec2I Player::update(const float& multiplier, const std::vector<Collidable>& collidables)
 {
-    if (Input::GetKeyDown(SPACE) && Input::GetKey(SPACE).frame_number == 0)
+    if (Input::GetKeyDown(Key::SPACE) && Input::GetKey(Key::SPACE).frame_number == 0)
     {
         reset();
         return Vec2I(0, 0);
     }
-    // std::cout << "PLAYER: " << position.y << '\n';
-    // if (standing_on != nullptr)
-    //     std::cout << "PLATFORM: " << standing_on->get_y() << '\n';
+
     update_velocity(multiplier);
-    position += velocity;
+
+    if (sliding_left != nullptr || sliding_right != nullptr)
+        update_sliding();
+
+    else
+        position += velocity;
+
 
     update_collisions(collidables);
 
@@ -84,10 +91,10 @@ void Player::update_velocity(const float& multiplier)
 
 void Player::update_velocity_x(const float& multiplier)
 {
-    if (Input::GetKeyDown(A) && !Input::GetKeyDown(D))
+    if (Input::GetKeyDown(Key::A) && !Input::GetKeyDown(Key::D))
         velocity.x -= (velocity.x > 0 ? X_STOP_ACC : X_GO_ACC) * multiplier;
 
-    else if (!Input::GetKeyDown(A) && Input::GetKeyDown(D))
+    else if (!Input::GetKeyDown(Key::A) && Input::GetKeyDown(Key::D))
         velocity.x += (velocity.x < 0 ? X_STOP_ACC : X_GO_ACC) * multiplier;
     
     else if (velocity.x > X_STOP_ACC)
@@ -102,22 +109,16 @@ void Player::update_velocity_x(const float& multiplier)
 
 void Player::update_velocity_y(const float& multiplier)
 {
-    // std::cout << "PLAYER Y + HEIGHT + 1: " << position.y + HEIGHT + 1 << '\n';
-    // if (standing_on != nullptr)
-    // {
-    //     std::cout << "PLATFORM Y: " << standing_on->get_y() << '\n';
-    //     std::cout << "PY == PY: " << (standing_on->get_y() == position.y + HEIGHT + 1) << '\n';
-    // }
+
     if (standing_on != nullptr && (position.x + WIDTH < standing_on->get_x() || position.x > standing_on->get_x() + standing_on->get_length()))
     { // if were no longer standing on the same thing we were eariler
         standing_on = nullptr;
         updates_since_falling = 0;
-        // std::cout << "FALLING DECTECTED\n";
     }
 
-    if ((standing_on != nullptr || updates_since_falling < coyote_frames) && Input::GetKeyDown(W) && Input::GetKey(W).frame_number < jump_buffer_frames)
+    if ((standing_on != nullptr || updates_since_falling < COYOTE_FRAMES) && Input::GetKeyDown(Key::W) && Input::GetKey(Key::W).frame_number < JUMP_BUFFER_FRAMES)
     { // jump
-        velocity.y = JUMP_ACC;
+        velocity.y = JUMP_VELOCITY;
         standing_on = nullptr;
     }
     else if (standing_on == nullptr)
@@ -125,6 +126,41 @@ void Player::update_velocity_y(const float& multiplier)
         velocity.y += GRAV_ACC * multiplier;
     }
 
+}
+
+void Player::update_sliding() // returns the actual velocity that we will use to update
+{
+    Vec2F actual_velocity = velocity * SLIDING_MULTIPLIER;
+    clamp_y_sliding_velocity(actual_velocity);
+    position += actual_velocity;
+
+    if (Input::GetKeyDown(Key::W) && Input::GetKey(Key::W).frame_number < JUMP_BUFFER_FRAMES)
+    {
+        wall_jump();
+        return;
+    }
+
+    if (!Input::GetKeyDown(Key::A) || (sliding_left != nullptr && sliding_left->get_y() + sliding_left->get_length() < position.y))
+        sliding_left = nullptr;
+    
+    if (!Input::GetKeyDown(Key::D) || (sliding_right != nullptr && sliding_right->get_y() + sliding_right->get_length() < position.y))
+        sliding_right = nullptr;
+}
+
+void Player::wall_jump()
+{
+    velocity.y = WALL_JUMP_VELOCITY;
+
+    if (sliding_left != nullptr)
+    {
+        velocity.x = MAX_X_VEL * 3;
+        sliding_left = nullptr;
+    }
+    else
+    {
+        velocity.x = -MAX_X_VEL * 3;
+        sliding_right = nullptr;
+    }
 }
 
 void Player::update_direction_facing(float old_velocity)
@@ -188,10 +224,12 @@ void Player::move(const Collidable& collidable)
     case LEFT:
         position.x = collidable.get_x() + 1.0f;
         velocity.x = 0.0f;
+        sliding_left = const_cast<Collidable*>(&collidable);
         break;
     case RIGHT:
         position.x = collidable.get_x() - WIDTH - 1.0f;
         velocity.x = 0.0f;
+        sliding_right = const_cast<Collidable*>(&collidable);
         break;
     }
 }

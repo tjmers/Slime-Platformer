@@ -41,17 +41,25 @@ private:
 
 
     Collidable* standing_on;
+    Collidable* sliding_left;
+    Collidable* sliding_right;
 
     void update_velocity(const float& multiplier);
     void update_velocity_x(const float& multiplier);
     void update_velocity_y(const float& multiplier);
     inline void clamp_velocity()
     {
-        velocity.x = std::min(velocity.x, MAX_X_VEL);
-        velocity.x = std::max(velocity.x, -MAX_X_VEL);
+        if (velocity.x < -MAX_X_VEL)
+            velocity.x -= (velocity.x + MAX_X_VEL) * SLOW_FACTOR;
+
+        if (velocity.x > MAX_X_VEL)
+            velocity.x -= (velocity.x - MAX_X_VEL) * SLOW_FACTOR;
+
         velocity.y = std::min(velocity.y, MAX_Y_VEL);
         velocity.y = std::max(velocity.y, -MAX_Y_VEL);
     }
+    void update_sliding();
+    void wall_jump();
     void update_direction_facing(float old_velocity);
     void update_collisions(const std::vector<Collidable>& collidables);
     bool collides(const Collidable& collidable) const;
@@ -65,9 +73,16 @@ private:
     }
 
 
-    constexpr static float MAX_X_VEL = 0.25_hu, X_GO_ACC = 0.03125_hu, X_STOP_ACC = 0.0625_hu;
-    constexpr static float MAX_Y_VEL = 0.5_vu, JUMP_ACC = -0.5_vu, GRAV_ACC = 0.025_vu;
-    constexpr static int coyote_frames = 5, jump_buffer_frames = 5;
+    constexpr static float MAX_X_VEL = 0.25_hu, X_GO_ACC = 0.03125_hu, X_STOP_ACC = 0.0625_hu, SLOW_FACTOR = 0.3f; // slow factor is how fast you start slowing down when youre above max speed
+    constexpr static float MAX_Y_VEL = 0.5_vu, JUMP_VELOCITY = -0.5_vu, GRAV_ACC = 0.025_vu;
+    constexpr static float SLIDING_MULTIPLIER = 0.3f, MAX_Y_VEL_SLIDING = 0.4_vu;
+    constexpr static float WALL_JUMP_VELOCITY = JUMP_VELOCITY * 0.5f;
+
+    inline void clamp_y_sliding_velocity(Vec2F& vel)
+    {
+        vel.y = std::min(MAX_Y_VEL_SLIDING, vel.y);
+    }
+    constexpr static int COYOTE_FRAMES = 5, JUMP_BUFFER_FRAMES = 5;
 
     static ID2D1Bitmap* sprite;
     constexpr static D2D1_RECT_F sprite_right_small = { 0.0f, 0.0f, 32.0f, 32.0f };

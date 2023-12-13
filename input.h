@@ -2,7 +2,7 @@
 
 #include <Windows.h>
 
-enum Key {
+enum class Key {
 	W, A, S, D, SPACE, ESCAPE, ENTER, COUNT
 };
 
