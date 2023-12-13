@@ -7,7 +7,7 @@
 #include "graphics.h"
 #include "vec2.h"
 
-enum Side
+enum class Side
 {
     LEFT, RIGHT, TOP, BOTTOM
 };

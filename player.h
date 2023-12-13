@@ -23,9 +23,6 @@ public:
     Vec2I update(const float& multiplier, const std::vector<Collidable>& collidables);
     void draw(Graphics& g) const;
 
-    inline Vec2F get_position() const { return position; }
-    inline Vec2F get_velocity() const { return velocity; }
-
     inline void set_left_limit(int left_limit) { this->left_limit = left_limit; }
     inline void set_right_limit(int right_limit) { this->right_limit = right_limit; }
 
@@ -73,7 +70,7 @@ private:
     }
 
 
-    constexpr static float MAX_X_VEL = 0.25_hu, X_GO_ACC = 0.03125_hu, X_STOP_ACC = 0.0625_hu, SLOW_FACTOR = 0.3f; // slow factor is how fast you start slowing down when youre above max speed
+    constexpr static float MAX_X_VEL = 0.25_hu, X_GO_ACC = 0.025_hu, X_STOP_ACC = 0.06_hu, SLOW_FACTOR = 0.3f; // slow factor is how fast you start slowing down when youre above max speed
     constexpr static float MAX_Y_VEL = 0.5_vu, JUMP_VELOCITY = -0.5_vu, GRAV_ACC = 0.025_vu;
     constexpr static float SLIDING_MULTIPLIER = 0.3f, MAX_Y_VEL_SLIDING = 0.4_vu;
     constexpr static float WALL_JUMP_VELOCITY = JUMP_VELOCITY * 0.5f;

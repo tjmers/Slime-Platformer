@@ -19,10 +19,12 @@ public:
 
     void update(const float multiplier);
     void draw(Graphics& g) const;
+    void reset();
 
 private:
     static Player get_player(int level_id);
     static std::vector<Collidable> get_collidables(int level_id);
     Player player;
     std::vector<Collidable> collidables;
+    Vec2I distance_moved;
 };

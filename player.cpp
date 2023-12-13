@@ -50,11 +50,6 @@ void Player::draw(Graphics& g) const
 
 Vec2I Player::update(const float& multiplier, const std::vector<Collidable>& collidables)
 {
-    if (Input::GetKeyDown(Key::SPACE) && Input::GetKey(Key::SPACE).frame_number == 0)
-    {
-        reset();
-        return Vec2I(0, 0);
-    }
 
     update_velocity(multiplier);
 
@@ -91,10 +86,10 @@ void Player::update_velocity(const float& multiplier)
 
 void Player::update_velocity_x(const float& multiplier)
 {
-    if (Input::GetKeyDown(Key::A) && !Input::GetKeyDown(Key::D))
+    if (sliding_left == nullptr && Input::GetKeyDown(Key::A) && !Input::GetKeyDown(Key::D))
         velocity.x -= (velocity.x > 0 ? X_STOP_ACC : X_GO_ACC) * multiplier;
 
-    else if (!Input::GetKeyDown(Key::A) && Input::GetKeyDown(Key::D))
+    else if (sliding_right == nullptr && !Input::GetKeyDown(Key::A) && Input::GetKeyDown(Key::D))
         velocity.x += (velocity.x < 0 ? X_STOP_ACC : X_GO_ACC) * multiplier;
     
     else if (velocity.x > X_STOP_ACC)
@@ -182,7 +177,7 @@ void Player::update_collisions(const std::vector<Collidable>& collidables)
         if (collides(collidable))
         {
             move(collidable);
-            // std::cout << "COLLIDES\n";
+            std::cout << "COLLIDES\n";
         }
     }
 }
@@ -191,18 +186,20 @@ bool Player::collides(const Collidable& collidable) const
 {
     switch (collidable.get_side())
     {
-    case TOP:
+    case Side::TOP:
         return position.x + WIDTH >= collidable.get_x() && position.x <= collidable.get_x() + collidable.get_length() &&
                position.y <= collidable.get_y() && position.y - velocity.y >= collidable.get_y();
-    case BOTTOM:
+    case Side::BOTTOM:
         return position.x + WIDTH >= collidable.get_x() && position.x <= collidable.get_x() + collidable.get_length() &&
                position.y >= collidable.get_y() - HEIGHT && position.y - velocity.y <= collidable.get_y() - HEIGHT;
-    case LEFT:
-        return position.y + HEIGHT >= collidable.get_y() && position.y <= collidable.get_y() + collidable.get_length() &&
-               position.x <= collidable.get_x() && position.x - velocity.x > collidable.get_x();
-    case RIGHT:
-        return position.y + HEIGHT >= collidable.get_y() && position.y <= collidable.get_y() + collidable.get_length() &&
-               position.x + WIDTH >= collidable.get_x() && position.x + WIDTH - velocity.x < collidable.get_x();
+    case Side::LEFT:
+        return sliding_left == nullptr &&
+              (position.y + HEIGHT >= collidable.get_y() && position.y <= collidable.get_y() + collidable.get_length() &&
+               position.x < collidable.get_x() && position.x - velocity.x >= collidable.get_x());
+    case Side::RIGHT:
+        return sliding_right == nullptr &&
+              (position.y + HEIGHT >= collidable.get_y() && position.y <= collidable.get_y() + collidable.get_length() &&
+               position.x + WIDTH > collidable.get_x() && position.x + WIDTH - velocity.x <= collidable.get_x());
     default:
         throw std::runtime_error("Soemthign went wrong");
     }
@@ -212,22 +209,24 @@ void Player::move(const Collidable& collidable)
 {
     switch (collidable.get_side())
     {
-    case TOP:
+    case Side::TOP:
         position.y = collidable.get_y() + 1.0f;
         velocity.y = 0.0f;
         break;
-    case BOTTOM:
+    case Side::BOTTOM:
         position.y = collidable.get_y() - HEIGHT - 1.0f;
         velocity.y = 0.0f;
         standing_on = const_cast<Collidable*>(&collidable);
+        sliding_left = nullptr;
+        sliding_right = nullptr;
         break;
-    case LEFT:
-        position.x = collidable.get_x() + 1.0f;
+    case Side::LEFT:
+        position.x = collidable.get_x();
         velocity.x = 0.0f;
         sliding_left = const_cast<Collidable*>(&collidable);
         break;
-    case RIGHT:
-        position.x = collidable.get_x() - WIDTH - 1.0f;
+    case Side::RIGHT:
+        position.x = collidable.get_x() - WIDTH;
         velocity.x = 0.0f;
         sliding_right = const_cast<Collidable*>(&collidable);
         break;
