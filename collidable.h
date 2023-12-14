@@ -1,9 +1,5 @@
 #pragma once
 
-#ifndef DRAW_COLLIDABLES_
-#define DRAW_COLLIDABLES_
-#endif
-
 #include "graphics.h"
 #include "vec2.h"
 

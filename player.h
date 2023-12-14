@@ -4,9 +4,6 @@
 #include <vector>
 
 #include "graphics.h"
-#ifndef DRAW_COLLIDABLES_
-#define DRAW_COLLIDABLES_
-#endif // DRAW_COLLIDABLES_
 #include "collidable.h"
 #include "object.h"
 #include "vec2.h"
@@ -19,7 +16,8 @@ public:
     // Player(const Player&& player);
 
     void reset();
-    constexpr static int WIDTH = 1.75_hu, HEIGHT = 3_vu;
+    bool should_reset(const std::vector<Object*> objects) const;
+    constexpr static int WIDTH = 2_hu, HEIGHT = 2_vu;
 
     Vec2I update(const float& multiplier, const std::vector<Object*>& objects);
     void draw(Graphics& g) const;
@@ -83,11 +81,11 @@ private:
     constexpr static int COYOTE_FRAMES = 5, JUMP_BUFFER_FRAMES = 5;
 
     static ID2D1Bitmap* sprite;
-    constexpr static D2D1_RECT_F sprite_right_small = { 0.0f, 0.0f, 32.0f, 32.0f };
-    constexpr static D2D1_RECT_F sprite_right_big = { 32.0f, 0.0f, 64.0f, 32.0f };
+    constexpr static D2D1_RECT_F sprite_right_small = { 0.0f, 0.0f, 32.0f, 17.0f };
+    constexpr static D2D1_RECT_F sprite_right_big = { 32.0f, 0.0f, 64.0f, 17.0f };
     
-    constexpr static D2D1_RECT_F sprite_left_small = { 64.0f, 0.0f, 96.0f, 32.0f };
-    constexpr static D2D1_RECT_F sprite_left_big = { 96.0f, 0.0f, 128.0f, 32.0f };
+    constexpr static D2D1_RECT_F sprite_left_small = { 64.0f, 0.0f, 96.0f, 17.0f };
+    constexpr static D2D1_RECT_F sprite_left_big = { 96.0f, 0.0f, 128.0f, 17.0f };
     
     enum class Direction
     {

@@ -3,6 +3,8 @@
 #include <stdexcept>
 
 #include "input.h"
+#include "spike.h"
+#include "wooden_floor.h"
 
 
 Level::Level(int id)
@@ -31,7 +33,7 @@ std::vector<Object*> Level::get_objects(int level_id)
     switch (level_id)
     {
     case 0:
-        return { new WoodenFloor(0, SCREEN_WIDTH, 28_vu, 4_vu) };
+        return { new WoodenFloor(0, SCREEN_WIDTH, 28_vu, 4_vu), new Spike(Spike::Facing::UP, 30_hu, 27_vu), new Spike(Spike::Facing::UP, 31_hu, 27_vu), new Spike(Spike::Facing::UP, 32_hu, 27_vu), new Spike(Spike::Facing::UP, 33_hu, 27_vu), new Spike(Spike::Facing::UP, 34_hu, 27_vu) };
     default:
         throw std::invalid_argument("Invalid level ID");
     }
@@ -54,6 +56,9 @@ void Level::update(const float multiplier)
         }
         distance_moved += amount_to_shift;
     }
+
+    if (player.should_reset(objects))
+        reset();
 }
 
 void Level::draw(Graphics& g) const
@@ -82,6 +87,9 @@ HRESULT Level::init_resources(Graphics& g)
     HRESULT hr = Player::init(g);
     if (SUCCEEDED(hr))
         hr = WoodenFloor::init(g);
+
+    if (SUCCEEDED(hr))
+        hr = Spike::init(g);
 
     return hr;
 }

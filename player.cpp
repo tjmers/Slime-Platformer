@@ -252,3 +252,17 @@ Vec2I Player::shift_screen()
     // std::cout << position.y << '\n';
     return amount_to_shift;
 }
+
+
+bool Player::should_reset(const std::vector<Object*> objects) const
+{
+    for (Object* o : objects)
+    {
+        for (Collidable c : o->get_killables())
+        {
+            if (collides(c))
+                return true;
+        }
+    }
+    return false;
+}

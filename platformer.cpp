@@ -53,7 +53,6 @@ int WinMain(
 		nullptr
 	);
 	
-    Level level(0);
 
 	if (FAILED(graphics.CreateGraphicsResources(hWnd)))
 	{
@@ -63,6 +62,7 @@ int WinMain(
 	if (FAILED(Level::init_resources(graphics)))
 		return -1;
 
+    Level level(0);
 	Input::Reset();
 
 	ShowWindow(hWnd, SW_SHOW);

@@ -15,6 +15,7 @@ public:
     virtual void draw(Graphics& g) const;
 
     inline const std::vector<Collidable>& get_collidables() const { return collidables; }
+    inline const std::vector<Collidable>& get_killables() const { return killables; }
 
 protected:
     std::vector<Collidable> collidables;

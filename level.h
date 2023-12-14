@@ -2,13 +2,9 @@
 
 #include <vector>
 
-#ifndef DRAW_COLLIDABLES_
-#define DRAW_COLLIDABLES_
-#endif
 #include "graphics.h"
 #include "object.h"
 #include "player.h"
-#include "wooden_floor.h"
 
 class Level
 {
