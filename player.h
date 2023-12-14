@@ -4,11 +4,12 @@
 #include <vector>
 
 #include "graphics.h"
-#include "vec2.h"
 #ifndef DRAW_COLLIDABLES_
 #define DRAW_COLLIDABLES_
 #endif // DRAW_COLLIDABLES_
 #include "collidable.h"
+#include "object.h"
+#include "vec2.h"
 
 class Player
 {
@@ -20,13 +21,13 @@ public:
     void reset();
     constexpr static int WIDTH = 1.75_hu, HEIGHT = 3_vu;
 
-    Vec2I update(const float& multiplier, const std::vector<Collidable>& collidables);
+    Vec2I update(const float& multiplier, const std::vector<Object*>& objects);
     void draw(Graphics& g) const;
 
     inline void set_left_limit(int left_limit) { this->left_limit = left_limit; }
     inline void set_right_limit(int right_limit) { this->right_limit = right_limit; }
 
-    static void init(Graphics& g);
+    static HRESULT init(Graphics& g);
 
 private:
     Vec2F position, velocity;

@@ -60,7 +60,8 @@ int WinMain(
 		return -1;
 	}
 
-	Player::init(graphics);
+	if (FAILED(Level::init_resources(graphics)))
+		return -1;
 
 	Input::Reset();
 

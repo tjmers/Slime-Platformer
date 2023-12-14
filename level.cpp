@@ -6,12 +6,13 @@
 
 
 Level::Level(int id)
-    : player(get_player(id)), collidables(get_collidables(id)), distance_moved(0, 0)
+    : player(get_player(id)), objects(get_objects(id)), distance_moved(0, 0)
 {}
 
 Level::~Level()
 {
-
+    for (Object* o : objects)
+        delete o;
 }
 
 Player Level::get_player(int level_id)
@@ -25,12 +26,12 @@ Player Level::get_player(int level_id)
     }
 }
 
-std::vector<Collidable> Level::get_collidables(int level_id)
+std::vector<Object*> Level::get_objects(int level_id)
 {
     switch (level_id)
     {
     case 0:
-        return {Collidable(Side::BOTTOM, -30_hu, 30_vu, 104_vu), Collidable(Side::LEFT, 5_hu, 0, 30_vu), Collidable(Side::RIGHT, 40_hu, 0, 30_vu)};
+        return { new WoodenFloor(0, SCREEN_WIDTH, 28_vu, 4_vu) };
     default:
         throw std::invalid_argument("Invalid level ID");
     }
@@ -43,13 +44,13 @@ void Level::update(const float multiplier)
         reset();
         return;
     }
-    Vec2I amount_to_shift = player.update(multiplier, collidables);
+    Vec2I amount_to_shift = player.update(multiplier, objects);
 
     if (amount_to_shift)
     {
-        for (Collidable& c : collidables)
+        for (Object* o : objects)
         {
-            c.move(amount_to_shift);
+            o->move(amount_to_shift);
         }
         distance_moved += amount_to_shift;
     }
@@ -57,24 +58,30 @@ void Level::update(const float multiplier)
 
 void Level::draw(Graphics& g) const
 {
+    for (const Object* o : objects)
+        o->draw(g);
     g.SetColor(D2D1::ColorF::CornflowerBlue);
     player.draw(g);
-#ifdef DRAW_COLLIDABLES_
-    g.SetColor(D2D1::ColorF::DeepPink);
-    for (const Collidable& c : collidables)
-    {
-        c.draw(g);
-    }
-#endif // DRAW_COLLIDABLES_
 }
 
 void Level::reset()
 {
     distance_moved *= -1;
     player.reset();
-    for (Collidable& c : collidables)
-        c.move(distance_moved);
+    for (Object* o : objects)
+        o->move(distance_moved);
 
     distance_moved.x = 0;
     distance_moved.y = 0;
+}
+
+
+
+HRESULT Level::init_resources(Graphics& g)
+{
+    HRESULT hr = Player::init(g);
+    if (SUCCEEDED(hr))
+        hr = WoodenFloor::init(g);
+
+    return hr;
 }

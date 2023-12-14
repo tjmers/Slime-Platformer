@@ -7,9 +7,9 @@
 
 ID2D1Bitmap* Player::sprite = nullptr;
 
-void Player::init(Graphics& g)
+HRESULT Player::init(Graphics& g)
 {
-    g.LoadBitmapFromFile(L".\\images\\slime.png", &sprite);
+    return g.LoadBitmapFromFile(L".\\images\\slime.png", &sprite);
 }
 
 Player::Player(const float x, const float y, const int left_limit, const int right_limit, const int top_limit, const int bottom_limit)
@@ -48,7 +48,7 @@ void Player::draw(Graphics& g) const
 }
 
 
-Vec2I Player::update(const float& multiplier, const std::vector<Collidable>& collidables)
+Vec2I Player::update(const float& multiplier, const std::vector<Object*>& objects)
 {
 
     update_velocity(multiplier);
@@ -59,8 +59,9 @@ Vec2I Player::update(const float& multiplier, const std::vector<Collidable>& col
     else
         position += velocity;
 
-
-    update_collisions(collidables);
+    for (const Object* object : objects)
+        update_collisions(object->get_collidables());
+        
 
     Vec2I position_moved = shift_screen();
 
@@ -177,7 +178,7 @@ void Player::update_collisions(const std::vector<Collidable>& collidables)
         if (collides(collidable))
         {
             move(collidable);
-            std::cout << "COLLIDES\n";
+            // std::cout << "COLLIDES\n";
         }
     }
 }
