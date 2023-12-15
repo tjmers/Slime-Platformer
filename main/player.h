@@ -51,8 +51,11 @@ private:
         if (velocity.x > MAX_X_VEL)
             velocity.x -= (velocity.x - MAX_X_VEL) * SLOW_FACTOR;
 
-        velocity.y = std::min(velocity.y, MAX_Y_VEL);
-        velocity.y = std::max(velocity.y, -MAX_Y_VEL);
+        if (velocity.y > MAX_Y_VEL)
+            velocity.y -= (velocity.y - MAX_Y_VEL) * SLOW_FACTOR;
+        
+        if (velocity.y < -MAX_Y_VEL)
+            velocity.y -= (velocity.y + MAX_Y_VEL) * SLOW_FACTOR;
     }
     void update_sliding();
     void wall_jump();
@@ -70,7 +73,7 @@ private:
 
 
     constexpr static float MAX_X_VEL = 0.25_hu, X_GO_ACC = 0.025_hu, X_STOP_ACC = 0.06_hu, SLOW_FACTOR = 0.3f; // slow factor is how fast you start slowing down when youre above max speed
-    constexpr static float MAX_Y_VEL = 0.5_vu, JUMP_VELOCITY = -0.5_vu, GRAV_ACC = 0.025_vu;
+    constexpr static float MAX_Y_VEL = 0.5_vu, JUMP_VELOCITY = -1_vu, GRAV_ACC = 0.025_vu;
     constexpr static float SLIDING_MULTIPLIER = 0.3f, MAX_Y_VEL_SLIDING = 0.4_vu;
     constexpr static float WALL_JUMP_VELOCITY = JUMP_VELOCITY * 0.5f;
 

@@ -2,8 +2,7 @@
 
 #include <vector>
 
-#include "graphics.h"
-#include "object.h"
+#include "../main/object.h"
 
 
 class WoodenFloor : public Object

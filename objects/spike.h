@@ -3,10 +3,7 @@
 #include <stdexcept>
 #include <vector>
 
-#include "collidable.h"
-#include "graphics.h"
-#include "object.h"
-#include "vec2.h"
+#include "../main/object.h"
 
 
 class Spike : public Object
@@ -23,7 +20,7 @@ public:
     void draw(Graphics& g) const override;
 private:
     Vec2I position;
-    constexpr static int WIDTH = 1_hu, HEIGHT = 1_vu;
+    constexpr static int WIDTH = 2_hu, HEIGHT = 2_vu;
     static std::vector<Collidable> make_killables(Facing direction, int x, int y);
     static ID2D1Bitmap* sprites;
     D2D1_RECT_F sprite_box;

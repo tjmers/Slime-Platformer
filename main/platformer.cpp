@@ -90,7 +90,7 @@ int WinMain(
 			while (lag >= timestep) {
 				lag -= timestep;
                 constexpr static int ONE_BILLION = 1e9;
-				level.update(frame_delta_time / ONE_BILLION / ONE_SIXTYITH); // pass in number of frames reletive to 60 FPS
+				level.update(frame_delta_time / ONE_BILLION / ONE_SIXTYITH); // pass in number of frames reletive to 60 FPS (if exactly 1/60 second passed, 1.0f would get passed in)
                 frame_delta_time = 0;
 				Input::Update();
 			}
@@ -102,9 +102,8 @@ int WinMain(
 		}
 	}
 
-	return (int)msg.wParam;
+	return static_cast<int>(msg.wParam);
 }
-
 
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)

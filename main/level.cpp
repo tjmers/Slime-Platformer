@@ -3,8 +3,8 @@
 #include <stdexcept>
 
 #include "input.h"
-#include "spike.h"
-#include "wooden_floor.h"
+#include "../objects/spike.h"
+#include "../objects/wooden_floor.h"
 
 
 Level::Level(int id)
@@ -33,7 +33,8 @@ std::vector<Object*> Level::get_objects(int level_id)
     switch (level_id)
     {
     case 0:
-        return { new WoodenFloor(0, SCREEN_WIDTH, 28_vu, 4_vu), new Spike(Spike::Facing::UP, 30_hu, 27_vu), new Spike(Spike::Facing::UP, 31_hu, 27_vu), new Spike(Spike::Facing::UP, 32_hu, 27_vu), new Spike(Spike::Facing::UP, 33_hu, 27_vu), new Spike(Spike::Facing::UP, 34_hu, 27_vu) };
+        return { new WoodenFloor(0, SCREEN_WIDTH, 28_vu, 4_vu),
+                 new Spike(Spike::Facing::UP, 40_hu, 26_vu), new Spike(Spike::Facing::LEFT, 42_hu, 26_vu), new Spike(Spike::Facing::RIGHT, 44_hu, 26_vu), new Spike(Spike::Facing::DOWN, 46_hu, 26_vu)};
     default:
         throw std::invalid_argument("Invalid level ID");
     }
