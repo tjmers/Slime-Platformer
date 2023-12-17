@@ -1,14 +1,9 @@
-#include "Input.h"
+#include "input.h"
+
 
 Input::KeyboardInput Input::keys[static_cast<int>(Key::COUNT)];
+Input::LeftButton Input::left_mouse;
 
-Input::KeyboardInput Input::GetKey(Key key) {
-	return keys[static_cast<int>(key)];
-}
-
-bool Input::GetKeyDown(Key key) {
-	return keys[static_cast<int>(key)].is_down;
-}
 
 void Input::HandleKeyboardInput(UINT_PTR key_code, bool is_down) {
 	switch (key_code) {
@@ -47,6 +42,26 @@ void Input::HandleKeyboardInput(UINT_PTR key_code, bool is_down) {
 			keys[static_cast<int>(Key::D)].frame_number = 0;
 		keys[static_cast<int>(Key::D)].is_down = is_down;
 		break;
+	case VK_LEFT:
+		if (keys[static_cast<int>(Key::LEFT)].is_down != is_down)
+			keys[static_cast<int>(Key::LEFT)].frame_number = 0;
+		keys[static_cast<int>(Key::LEFT)].is_down = is_down;
+		break;
+	case VK_RIGHT:
+		if (keys[static_cast<int>(Key::RIGHT)].is_down != is_down)
+			keys[static_cast<int>(Key::RIGHT)].frame_number = 0;
+		keys[static_cast<int>(Key::RIGHT)].is_down = is_down;
+		break;
+	case VK_UP:
+		if (keys[static_cast<int>(Key::UP)].is_down != is_down)
+			keys[static_cast<int>(Key::UP)].frame_number = 0;
+		keys[static_cast<int>(Key::UP)].is_down = is_down;
+		break;
+	case VK_DOWN:
+		if (keys[static_cast<int>(Key::DOWN)].is_down != is_down)
+			keys[static_cast<int>(Key::DOWN)].frame_number = 0;
+		keys[static_cast<int>(Key::DOWN)].is_down = is_down;
+		break;
 	}
 }
 
@@ -62,4 +77,5 @@ void Input::Update()
 	{
 		++keys[i].frame_number;
 	}
+	++left_mouse.frame_number;
 }

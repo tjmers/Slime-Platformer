@@ -11,6 +11,9 @@ Level::Level(int id)
     : player(get_player(id)), objects(get_objects(id)), distance_moved(0, 0)
 {}
 
+Level::Level(const Player& player, const std::vector<Object*> objects)
+    : player(player), objects(objects), distance_moved(0, 0) {}
+
 Level::~Level()
 {
     for (Object* o : objects)

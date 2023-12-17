@@ -112,7 +112,7 @@ void Player::update_velocity_y(const float& multiplier)
         updates_since_falling = 0;
     }
 
-    if ((standing_on != nullptr || updates_since_falling < COYOTE_FRAMES) && Input::GetKeyDown(Key::W) && Input::GetKey(Key::W).frame_number < JUMP_BUFFER_FRAMES)
+    if ((standing_on != nullptr || updates_since_falling < COYOTE_FRAMES) && Input::GetKeyDown(Key::W) && Input::GetKeyFrame(Key::W) < JUMP_BUFFER_FRAMES)
     { // jump
         velocity.y = JUMP_VELOCITY;
         standing_on = nullptr;
@@ -130,7 +130,7 @@ void Player::update_sliding() // returns the actual velocity that we will use to
     clamp_y_sliding_velocity(actual_velocity);
     position += actual_velocity;
 
-    if (Input::GetKeyDown(Key::W) && Input::GetKey(Key::W).frame_number < JUMP_BUFFER_FRAMES)
+    if (Input::GetKeyDown(Key::W) && Input::GetKeyFrame(Key::W) < JUMP_BUFFER_FRAMES)
     {
         wall_jump();
         return;

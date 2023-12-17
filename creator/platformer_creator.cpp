@@ -1,17 +1,21 @@
-// compilation command: g++ main\collidable.cpp main\level.cpp main\platformer.cpp main\vec2.cpp main\graphics.cpp main\input.cpp objects\wooden_floor.cpp main\object.cpp objects\spike.cpp main\player.cpp -ld2d1 -lWindowsCodecs -lole32 -o platformer.exe
+// compilation command: g++ creator/platformer_creator.cpp creator/level_editor.cpp main/input.cpp main/vec2.cpp objects/wooden_floor.cpp main/object.cpp objects/invisible_boundry.cpp .\objects\spike.cpp main/graphics.cpp main/collidable.cpp  -ld2d1 -lWindowsCodecs -lole32 -o level_creator.exe
+
+#include <chrono>
+#include <stdexcept>
+#include <iostream>
 
 #include <Windows.h>
 
-#include <chrono>
+#include "../main/graphics.h"
+#include "../main/input.h"
+#include "level_editor.h"
 
-#include "graphics.h"
-#include "input.h"
-#include "level.h"
-#include "player.h"
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 Graphics graphics;
+
+LevelEditor make_level_editor(int new_level);
 
 int CALLBACK WinMain(
 	_In_ HINSTANCE hInstance,
@@ -55,17 +59,34 @@ int CALLBACK WinMain(
 		nullptr
 	);
 	
+    
 
 	if (FAILED(graphics.CreateGraphicsResources(hWnd)))
 	{
+		std::cerr << "Graphics initialization failed\n";
+		return -1;
+	}
+	if (FAILED(LevelEditor::init_resources(graphics)))
+	{
+		std::cerr << "Level Editor resource initialization failed\n";
 		return -1;
 	}
 
-	if (FAILED(Level::init_resources(graphics)))
-		return -1;
-
-    Level level(0);
+	
 	Input::Reset();
+
+	int should_make_new_level;
+
+	do {
+		std::cout << "Make a new level? [y/n]: ";
+		should_make_new_level = getchar();
+		if (should_make_new_level >= static_cast<int>('A') && should_make_new_level <= static_cast<int>('Z'))
+			should_make_new_level += 32;
+	} while (should_make_new_level != static_cast<int>('y') && should_make_new_level != static_cast<int>('n'));
+
+	LevelEditor level_editor = make_level_editor(should_make_new_level);
+
+
 
 	ShowWindow(hWnd, SW_SHOW);
 
@@ -74,6 +95,7 @@ int CALLBACK WinMain(
 	auto timeStart = clock::now();
 
     float frame_delta_time = 0.0f;
+
 
 	MSG msg{ 0 };
 	msg.message = WM_NULL;
@@ -92,20 +114,21 @@ int CALLBACK WinMain(
 			while (lag >= timestep) {
 				lag -= timestep;
                 constexpr static int ONE_BILLION = 1e9;
-				level.update(frame_delta_time / ONE_BILLION / ONE_SIXTYITH); // pass in number of frames reletive to 60 FPS (if exactly 1/60 second passed, 1.0f would get passed in)
+				level_editor.update();
                 frame_delta_time = 0;
 				Input::Update();
 			}
 
 			graphics.BeginDraw();
 			graphics.ClearScreen(0.5f, 0.0f, 0.0f);
-			level.draw(graphics);
+			level_editor.draw(graphics);
 			graphics.EndDraw();
 		}
 	}
 
 	return static_cast<int>(msg.wParam);
 }
+
 
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -128,10 +151,30 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_KEYUP:
 		Input::HandleKeyboardInput(wParam, (lParam & 0x80000000) == 0);
 		break;
+	case WM_LBUTTONDOWN:
+	case WM_LBUTTONUP:
+		Input::HandleMouseDown({*reinterpret_cast<short*>(&lParam), *(reinterpret_cast<short*>(&lParam) + 1)}, wParam & MK_LBUTTON);
+		break;
 
 	default:
 		return DefWindowProcW(hWnd, uMsg, wParam, lParam);
 	}
 
 	return 0;
+}
+
+
+LevelEditor make_level_editor(int new_level)
+{
+	if (new_level == static_cast<int>('y'))
+		return LevelEditor();
+
+	else if (new_level == static_cast<int>('n'))
+	{
+		std::string file_path;
+		std::cout << "Enter file path: ";
+		std::cin >> file_path;
+		return LevelEditor(file_path);
+	}
+	throw std::invalid_argument("new_level shuld be y or n");
 }

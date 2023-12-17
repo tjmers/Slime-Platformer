@@ -37,3 +37,10 @@ HRESULT WoodenFloor::init(Graphics& g)
 {
     return g.LoadBitmapFromFile(L".\\images\\wooden_floor.png", &sprite);
 }
+
+
+void WoodenFloor::write_to_file(std::ofstream& output_file) const
+{
+    output_file << '\n' << std::to_string(static_cast<float>(position.x) / H_UNIT) << '\n' << std::to_string(static_cast<float>(position.x + width) / H_UNIT)
+                << '\n' << std::to_string(static_cast<float>(position.y) / V_UNIT) << '\n' << std::to_string(static_cast<float>(height) / V_UNIT);
+}

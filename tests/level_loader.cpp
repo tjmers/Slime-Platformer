@@ -1,13 +1,12 @@
-// compilation command: g++ main\collidable.cpp main\level.cpp main\platformer.cpp main\vec2.cpp main\graphics.cpp main\input.cpp objects\wooden_floor.cpp main\object.cpp objects\spike.cpp main\player.cpp -ld2d1 -lWindowsCodecs -lole32 -o platformer.exe
-
-#include <Windows.h>
+// compilation command: g++ tests/level_loader.cpp main/graphics.cpp creator/level_editor.cpp main/object.cpp objects/invisible_boundry.cpp objects/spike.cpp objects/wooden_floor.cpp main/collidable.cpp main/vec2.cpp -ld2d1 -lWindowsCodecs -lole32 -o tests/level_loader.exe
 
 #include <chrono>
 
-#include "graphics.h"
-#include "input.h"
-#include "level.h"
-#include "player.h"
+#include <Windows.h>
+
+#include "../main/graphics.h"
+#include "../creator/level_editor.h"
+
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
@@ -61,19 +60,16 @@ int CALLBACK WinMain(
 		return -1;
 	}
 
-	if (FAILED(Level::init_resources(graphics)))
+	if (FAILED(LevelEditor::init_resources(graphics)))
 		return -1;
 
-    Level level(0);
-	Input::Reset();
-
+    LevelEditor level_editor;
 	ShowWindow(hWnd, SW_SHOW);
 
 	using clock = std::chrono::high_resolution_clock;
 	std::chrono::nanoseconds lag(0ns);
 	auto timeStart = clock::now();
 
-    float frame_delta_time = 0.0f;
 
 	MSG msg{ 0 };
 	msg.message = WM_NULL;
@@ -82,7 +78,6 @@ int CALLBACK WinMain(
 		auto delta_time = currentTime - timeStart;
 		timeStart = currentTime;
 		lag += std::chrono::duration_cast<std::chrono::nanoseconds>(delta_time);
-        frame_delta_time += delta_time.count();
 
 		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
 			TranslateMessage(&msg);
@@ -91,15 +86,12 @@ int CALLBACK WinMain(
 		else {
 			while (lag >= timestep) {
 				lag -= timestep;
-                constexpr static int ONE_BILLION = 1e9;
-				level.update(frame_delta_time / ONE_BILLION / ONE_SIXTYITH); // pass in number of frames reletive to 60 FPS (if exactly 1/60 second passed, 1.0f would get passed in)
-                frame_delta_time = 0;
-				Input::Update();
+				level_editor.update();
 			}
 
 			graphics.BeginDraw();
 			graphics.ClearScreen(0.5f, 0.0f, 0.0f);
-			level.draw(graphics);
+			level_editor.draw(graphics);
 			graphics.EndDraw();
 		}
 	}
@@ -118,17 +110,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		break;
-
-	case WM_KILLFOCUS:
-		Input::Reset();
-		break;
-	case WM_SYSKEYDOWN:
-	case WM_SYSKEYUP:
-	case WM_KEYDOWN:
-	case WM_KEYUP:
-		Input::HandleKeyboardInput(wParam, (lParam & 0x80000000) == 0);
-		break;
-
 	default:
 		return DefWindowProcW(hWnd, uMsg, wParam, lParam);
 	}

@@ -15,6 +15,8 @@ constexpr int SCREEN_HEIGHT = 640;
 constexpr int H_UNIT = SCREEN_WIDTH / 48;
 constexpr int V_UNIT = SCREEN_HEIGHT / 32;
 
+static_assert(V_UNIT == H_UNIT);
+
 constexpr int operator"" _vu(unsigned long long val)
 {
 	return static_cast<int>(val) * V_UNIT;

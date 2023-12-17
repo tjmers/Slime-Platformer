@@ -1,5 +1,6 @@
 #pragma once
 
+#include <fstream>
 #include <vector>
 
 #include "collidable.h"
@@ -16,6 +17,10 @@ public:
 
     inline const std::vector<Collidable>& get_collidables() const { return collidables; }
     inline const std::vector<Collidable>& get_killables() const { return killables; }
+
+    constexpr static int WOODEN_FLOOR = 0, SPIKE = 1, INVISIBLE_BOUNDRY = 2;
+
+    virtual void write_to_file(std::ofstream& output_file) const = 0;
 
 protected:
     std::vector<Collidable> collidables;

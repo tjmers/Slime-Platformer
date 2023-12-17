@@ -12,6 +12,7 @@ public:
     void move(const Vec2I& amount) override;
     void draw(Graphics& g) const override;
     static HRESULT init(Graphics& g);
+    void write_to_file(std::ofstream& output_file) const override;
 private:
     Vec2I position;
     int width, height;

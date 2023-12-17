@@ -11,6 +11,7 @@ class Level
 public:
 
     Level(int id);
+    Level(const Player& player, const std::vector<Object*> objects);
     ~Level();
 
     Level() = delete;
