@@ -18,6 +18,7 @@ public:
     void reset();
     bool should_reset(const std::vector<Object*> objects) const;
     constexpr static int WIDTH = 2_hu, HEIGHT = 2_vu;
+    static_assert(WIDTH == HEIGHT);
 
     Vec2I update(const float& multiplier, const std::vector<Object*>& objects);
     void draw(Graphics& g) const;

@@ -61,6 +61,11 @@ void Vec2F::operator/=(const float& scalar)
     y /= scalar;
 }
 
+Vec2F::operator Vec2I() const
+{
+    return Vec2I(static_cast<int>(x), static_cast<int>(y));
+}
+
 
 
 
@@ -121,4 +126,9 @@ void Vec2I::operator/=(const int& scalar)
 Vec2I::operator bool() const
 {
     return x != 0 || y != 0;
+}
+
+Vec2I::operator Vec2F() const
+{
+    return Vec2F(static_cast<float>(x), static_cast<float>(y));
 }

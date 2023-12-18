@@ -41,6 +41,13 @@ HRESULT WoodenFloor::init(Graphics& g)
 
 void WoodenFloor::write_to_file(std::ofstream& output_file) const
 {
-    output_file << '\n' << std::to_string(static_cast<float>(position.x) / H_UNIT) << '\n' << std::to_string(static_cast<float>(position.x + width) / H_UNIT)
+    output_file << '\n' << std::to_string(Object::WOODEN_FLOOR)
+                << '\n' << std::to_string(static_cast<float>(position.x) / H_UNIT) << '\n' << std::to_string(static_cast<float>(position.x + width) / H_UNIT)
                 << '\n' << std::to_string(static_cast<float>(position.y) / V_UNIT) << '\n' << std::to_string(static_cast<float>(height) / V_UNIT);
 }
+
+
+int WoodenFloor::get_x() const { return position.x; }
+int WoodenFloor::get_y() const { return position.y; }
+int WoodenFloor::get_width() const { return width; }
+int WoodenFloor::get_height() const { return height; }

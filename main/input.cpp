@@ -1,5 +1,6 @@
 #include "input.h"
 
+#include <iostream>
 
 Input::KeyboardInput Input::keys[static_cast<int>(Key::COUNT)];
 Input::LeftButton Input::left_mouse;
@@ -62,6 +63,12 @@ void Input::HandleKeyboardInput(UINT_PTR key_code, bool is_down) {
 			keys[static_cast<int>(Key::DOWN)].frame_number = 0;
 		keys[static_cast<int>(Key::DOWN)].is_down = is_down;
 		break;
+	case VK_SHIFT:
+		if (keys[static_cast<int>(Key::SHIFT)].is_down != is_down)
+			keys[static_cast<int>(Key::SHIFT)].frame_number = 0;
+		keys[static_cast<int>(Key::SHIFT)].is_down = is_down;
+		break;
+
 	}
 }
 
@@ -69,6 +76,7 @@ void Input::Reset() {
 	for (int i = 0; i < static_cast<int>(Key::COUNT); i++) {
 		keys[i].is_down = false;
 	}
+	left_mouse.is_down = false;
 }
 
 void Input::Update()
