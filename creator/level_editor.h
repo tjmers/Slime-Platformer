@@ -1,11 +1,16 @@
 #pragma once
 
+#include <iterator>
 #include <string>
 #include <vector>
 
 #include "../main/object.h"
 #include "../main/graphics.h"
 #include "../main/vec2.h"
+#include "../objects/decoy.h"
+#include "../objects/invisible_boundry.h"
+#include "../objects/spike.h"
+#include "../objects/wooden_floor.h"
 
 
 /// @brief Make a level. When saving a level, the save file contains the data in VUNITS and HUNITS, they get converted when the program runs
@@ -45,4 +50,23 @@ private:
     void update_selection();
     void update_pan();
     void move_selected_object();
+    void create_object();
+    /// @brief Uses the terminal to edit the object properties
+    void edit_object_properties_from_menu();
+
+    bool object_menu_open;
+    Object::TYPE object_selected_from_menu;
+
+    static int get_valid_int(const std::string& error_message, std::string& line);
+    static int get_valid_int(const std::string& error_message, std::string& line, int lower_bound, int upper_bound); // lower - included, upper - excluded
+
+    // object properties
+    int wooden_floor_width, wooden_floor_height;
+    Spike::Facing spike_rotation;
+    Side invisible_boundry_side;
+    int invisible_boundry_length;
+
+    // object sprites in the object menu
+    static ID2D1Bitmap* object_menu_sprites[static_cast<int>(Object::TYPE::COUNT)];
+    static D2D1_RECT_F object_menu_sprite_bounds[static_cast<int>(Object::TYPE::COUNT)];
 };

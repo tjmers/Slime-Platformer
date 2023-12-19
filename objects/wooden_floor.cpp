@@ -2,8 +2,8 @@
 
 ID2D1Bitmap* WoodenFloor::sprite = nullptr;
 
-WoodenFloor::WoodenFloor(const int& x1, const int& x2, const int& y, const int& height)
-    : Object(make_collidables(x1, x2, y, height), std::vector<Collidable>()), position(x1, y), width(x2 - x1), height(height) {}
+WoodenFloor::WoodenFloor(const int& x, const int& y, const int& width, const int& height)
+    : Object(make_collidables(x, x + width, y, height), std::vector<Collidable>()), position(x, y), width(width), height(height) {}
 
 std::vector<Collidable> WoodenFloor::make_collidables(const int& x1, const int& x2, const int& y, const int& height)
 {
@@ -41,8 +41,8 @@ HRESULT WoodenFloor::init(Graphics& g)
 
 void WoodenFloor::write_to_file(std::ofstream& output_file) const
 {
-    output_file << '\n' << std::to_string(Object::WOODEN_FLOOR)
-                << '\n' << std::to_string(static_cast<float>(position.x) / H_UNIT) << '\n' << std::to_string(static_cast<float>(position.x + width) / H_UNIT)
+    output_file << '\n' << std::to_string(static_cast<int>(Object::TYPE::WOODEN_FLOOR))
+                << '\n' << std::to_string(static_cast<float>(position.x) / H_UNIT) << '\n' << std::to_string(static_cast<float>(width) / H_UNIT)
                 << '\n' << std::to_string(static_cast<float>(position.y) / V_UNIT) << '\n' << std::to_string(static_cast<float>(height) / V_UNIT);
 }
 

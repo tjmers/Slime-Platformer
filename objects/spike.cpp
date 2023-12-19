@@ -52,7 +52,7 @@ void Spike::draw(Graphics& g) const
 
 void Spike::write_to_file(std::ofstream& output_file) const
 {
-    output_file << '\n' << std::to_string(Object::SPIKE)
+    output_file << '\n' << std::to_string(static_cast<int>(Object::TYPE::SPIKE))
                 << '\n' << std::to_string(static_cast<int>(sprite_box.left) / 32) << '\n' << std::to_string(static_cast<float>(position.x) / H_UNIT)
                 << '\n' << std::to_string(static_cast<float>(position.y) / V_UNIT);
 }

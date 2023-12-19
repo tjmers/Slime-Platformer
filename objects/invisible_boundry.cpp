@@ -6,7 +6,7 @@ InvisibleBoundry::InvisibleBoundry(Side side, int x, int y, int length)
 
 void InvisibleBoundry::write_to_file(std::ofstream& output_file) const
 {
-    output_file << '\n' << std::to_string(Object::INVISIBLE_BOUNDRY)
+    output_file << '\n' << std::to_string(static_cast<int>(Object::TYPE::INVISIBLE_BOUNDRY))
                 << '\n' << std::to_string(static_cast<int>(collidables[0].get_side())) << '\n' << std::to_string(static_cast<float>(collidables[0].get_x()) / H_UNIT)
                 << '\n' << std::to_string(static_cast<float>(collidables[0].get_y()) / V_UNIT) << '\n';
 

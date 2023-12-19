@@ -30,7 +30,7 @@ void Decoy::move(const Vec2I& amount)
 
 void Decoy::write_to_file(std::ofstream& output_file) const
 {
-    output_file << '\n' << std::to_string(Object::DECOY)
+    output_file << '\n' << std::to_string(static_cast<int>(Object::TYPE::DECOY))
                 << '\n' << static_cast<float>(position.x) / H_UNIT
                 << '\n' << static_cast<float>(position.y) / V_UNIT;
 }

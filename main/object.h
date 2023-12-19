@@ -22,7 +22,10 @@ public:
     virtual int get_width() const = 0;//    /               if an click intersects an object to select it
     virtual int get_height() const = 0;//--/                    (maybe wrap it in a #ifdef later)
 
-    constexpr static int WOODEN_FLOOR = 0, SPIKE = 1, INVISIBLE_BOUNDRY = 2, DECOY = 3;
+    enum class TYPE
+    {
+        DECOY = -1, WOODEN_FLOOR, SPIKE, INVISIBLE_BOUNDRY, COUNT
+    };
 
     virtual void write_to_file(std::ofstream& output_file) const = 0;
 

@@ -5,7 +5,7 @@
 #include "vec2.h"
 
 enum class Key {
-	W, A, S, D, UP, DOWN, LEFT, RIGHT, SPACE, ESCAPE, ENTER, SHIFT, COUNT
+	W, A, S, D, E, UP, DOWN, LEFT, RIGHT, SPACE, ESCAPE, ENTER, SHIFT, DEL, COUNT
 };
 
 

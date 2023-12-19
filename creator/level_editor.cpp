@@ -4,36 +4,43 @@
 #include <iostream>
 
 #include "../main/input.h"
-#include "../objects/decoy.h"
-#include "../objects/invisible_boundry.h"
-#include "../objects/spike.h"
-#include "../objects/wooden_floor.h"
+
 
 
 LevelEditor::LevelEditor()
-    : file_path(get_file_path()), player_position(0.0f, 0.0f), objects(),
+    : file_path(get_file_path()), player_position(0.0f, 0.0f), objects({new Decoy(0, 0)}),
       player_left_bound(0), player_right_bound(0), player_upper_bound(0), player_lower_bound(0),
-      total_panned(0, 0), selected(false), object_selected(objects.end())
-{
-
-}
+      total_panned(0, 0), selected(false), object_selected(objects.end()),
+      object_menu_open(false), object_selected_from_menu(static_cast<Object::TYPE>(0)),
+      wooden_floor_width(100), wooden_floor_height(100),
+      spike_rotation(Spike::Facing::UP),
+      invisible_boundry_side(Side::LEFT), invisible_boundry_length(0)
+{}
 
 LevelEditor::LevelEditor(const std::string& file_path)
     : file_path(std::move(file_path)), player_position(get_player_position(this->file_path)), objects(get_objects(this->file_path, player_position)),
-      total_panned(0, 0), selected(false), object_selected(objects.end())
+      total_panned(0, 0), selected(false), object_selected(objects.end()),
+      object_menu_open(false), object_selected_from_menu(static_cast<Object::TYPE>(0)),
+      wooden_floor_width(100), wooden_floor_height(100),
+      spike_rotation(Spike::Facing::UP),
+      invisible_boundry_side(Side::LEFT)
 {
     get_player_bounds();
 }
 
 LevelEditor::LevelEditor(Vec2F player_position, int player_left_bound, int player_right_bound, int player_upper_bound, int player_lower_bound, std::vector<Object*>& objects)
     : player_position(player_position), player_left_bound(player_left_bound), player_right_bound(player_right_bound), player_upper_bound(player_upper_bound), player_lower_bound(player_lower_bound),
-      objects(objects), file_path(get_file_path()) {}
+      objects(objects), file_path(get_file_path()), total_panned(0, 0), selected(false), object_selected(objects.end()), object_menu_open(false), object_selected_from_menu(static_cast<Object::TYPE>(0)),
+      wooden_floor_width(100), wooden_floor_height(100),
+      spike_rotation(Spike::Facing::UP),
+      invisible_boundry_side(Side::LEFT), invisible_boundry_length(0)
+{}
 
 std::string LevelEditor::get_file_path()
 {
-    std::cout << "Enter file path for the new file to be saved to";
+    std::cout << "Enter file path for the new file to be saved to: ";
     std::string input;
-    std::getline(std::cin, input);
+    std::cin >> input;
     return input;
 }
 
@@ -76,18 +83,18 @@ std::vector<Object*> LevelEditor::get_objects(const std::string& file_path, cons
         std::getline(input_file, line);
         while (std::getline(input_file, line))
         {
-            switch (std::stoi(line))
+            switch (static_cast<Object::TYPE>(std::stoi(line)))
             {
-            case Object::WOODEN_FLOOR:
+            case Object::TYPE::WOODEN_FLOOR:
                 interpret_wooden_floor(line, input_file, objects);
                 break;
-            case Object::SPIKE:
+            case Object::TYPE::SPIKE:
                 interpret_spike(line, input_file, objects);
                 break;
-            case Object::INVISIBLE_BOUNDRY:
+            case Object::TYPE::INVISIBLE_BOUNDRY:
                 interpret_invisible_boundry(line, input_file, objects);
                 break;
-            case Object::DECOY:
+            case Object::TYPE::DECOY:
                 interpret_decoy(line, input_file, objects);
                 break;
             default:
@@ -104,14 +111,14 @@ std::vector<Object*> LevelEditor::get_objects(const std::string& file_path, cons
 void LevelEditor::interpret_wooden_floor(std::string& line, std::ifstream& input_file, std::vector<Object*>& objects)
 {
     std::getline(input_file, line);
-    int x1 = static_cast<int>(std::stof(line) * H_UNIT);
+    int x = static_cast<int>(std::stof(line) * H_UNIT);
     std::getline(input_file, line);
-    int x2 = static_cast<int>(std::stof(line) * H_UNIT);
+    int y = static_cast<int>(std::stof(line) * H_UNIT);
     std::getline(input_file, line);
-    int y = static_cast<int>(std::stof(line) * V_UNIT);
+    int width = static_cast<int>(std::stof(line) * V_UNIT);
     std::getline(input_file, line);
     int height = static_cast<int>(std::stof(line) * V_UNIT);
-    objects.push_back(new WoodenFloor(x1, x2, y, height));
+    objects.push_back(new WoodenFloor(x, y, width, height));
 }
 
 void LevelEditor::interpret_spike(std::string& line, std::ifstream& input_file, std::vector<Object*>& objects)
@@ -209,6 +216,46 @@ LevelEditor::~LevelEditor()
 }
 
 
+int LevelEditor::get_valid_int(const std::string& error_message, std::string& line_buffer)
+{
+    int num{0};
+    while (true)
+    {
+        try
+        {
+            num = std::stoi(line_buffer);
+            return num;
+        }
+        catch (const std::invalid_argument& e)
+        {
+            std::cout << error_message;
+            std::cin >> line_buffer;
+        }
+    }
+}
+
+
+int LevelEditor::get_valid_int(const std::string& error_message, std::string& line_buffer, int lower_bound, int upper_bound)
+{
+    int num{0};
+    while (true)
+    {
+        try
+        {
+            num = std::stoi(line_buffer);
+            if (num < lower_bound || num >= upper_bound)
+                throw std::invalid_argument("");
+            return num;
+        }
+        catch (const std::invalid_argument& e)
+        {
+            std::cout << error_message;
+            std::cin >> line_buffer;
+        }
+    }
+}
+
+
 void LevelEditor::update()
 {
     if (Input::GetKeyDown(Key::ENTER) && Input::GetKeyFrame(Key::ENTER) == 0)
@@ -216,10 +263,40 @@ void LevelEditor::update()
         save();
         return;
     }
-    update_selection();
+
+    if (Input::GetKeyDown(Key::SPACE) && Input::GetKeyFrame(Key::SPACE) == 0)
+        object_menu_open = !object_menu_open;
+
+    if (object_menu_open)
+    {
+        if (Input::GetKeyDown(Key::E) && Input::GetKeyFrame(Key::E) == 0)
+            edit_object_properties_from_menu();
+        
+        if (Input::GetLeftMouseDown() && Input::GetLeftMouseFrame() == 0)
+            create_object();
+
+        if (Input::GetKeyDown(Key::DOWN) && Input::GetKeyFrame(Key::DOWN) == 0)
+            object_selected_from_menu = static_cast<Object::TYPE>((static_cast<int>(object_selected_from_menu) + 1) % static_cast<int>(Object::TYPE::COUNT));
+
+        if (Input::GetKeyDown(Key::UP) && Input::GetKeyFrame(Key::UP) == 0)
+        {
+            int decremented_object = static_cast<int>(object_selected_from_menu) - 1;
+            if (decremented_object == -1)
+                object_selected_from_menu = static_cast<Object::TYPE>(static_cast<int>(Object::TYPE::COUNT) - 1);
+            
+            else
+                object_selected_from_menu = static_cast<Object::TYPE>(decremented_object);
+        }
+    }
+    else
+    {
+        update_selection();
+        if (selected)
+            move_selected_object();
+
+    }
+
     
-    if (selected)
-        move_selected_object();
 
     update_pan();
 }
@@ -229,6 +306,13 @@ void LevelEditor::update_selection()
     if (Input::GetKeyDown(Key::ESCAPE) && Input::GetKeyFrame(Key::ESCAPE) == 0)
     {
         selected = false;
+        object_selected = objects.end();
+        return;
+    }
+    if (Input::GetKeyDown(Key::DEL) && Input::GetKeyFrame(Key::DEL) == 0)
+    {
+        selected = false;
+        objects.erase(object_selected);
         object_selected = objects.end();
         return;
     }
@@ -315,12 +399,97 @@ void LevelEditor::move_selected_object()
         player_position += amount_to_move; // move the player if the decoy was selected
 }
 
+
+void LevelEditor::create_object()
+{
+    switch (object_selected_from_menu)
+    {
+    case Object::TYPE::WOODEN_FLOOR:
+        objects.push_back(new WoodenFloor(Input::GetLeftMousePosition().x, Input::GetLeftMousePosition().y, wooden_floor_width, wooden_floor_height));
+        break;
+    case Object::TYPE::SPIKE:
+        objects.push_back(new Spike(spike_rotation, Input::GetLeftMousePosition().x, Input::GetLeftMousePosition().y));
+        break;
+    case Object::TYPE::INVISIBLE_BOUNDRY:
+        objects.push_back(new InvisibleBoundry(invisible_boundry_side, Input::GetLeftMousePosition().x, Input::GetLeftMousePosition().y, invisible_boundry_length));
+        break;
+    default:
+        throw std::invalid_argument("trying to create object with an invalid ID");
+    }
+    object_selected = std::prev(objects.end());
+    selected = true;
+}
+
+
+void LevelEditor::edit_object_properties_from_menu()
+{
+    std::string line;
+    switch (object_selected_from_menu)
+    {
+    case Object::TYPE::WOODEN_FLOOR:
+        std::cout << "Width: ";
+        std::cin >> line;
+        
+        if (!line.empty())
+            wooden_floor_width = get_valid_int("Invalid width -- try again: ", line);
+        
+
+        std::cout << "Height: ";
+        std::cin >> line;
+
+        if (!line.empty())
+            wooden_floor_height = get_valid_int("Invalid height -- try again: ", line);
+
+        break;
+    case Object::TYPE::SPIKE:
+        std::cout << "Enter rotation: left [0], right [1], up [2], down [3]: ";
+        std::cin >> line;
+
+        if (!line.empty())
+            spike_rotation = static_cast<Spike::Facing>(get_valid_int("Rotation must be a number: left [0], right [1], up [2], down [3]: ", line, 0, 4));
+
+        break;
+    case Object::TYPE::INVISIBLE_BOUNDRY:
+        std::cout << "Enter side: left [0], right [1], top [2], bottom [3]: ";
+        std::cin >> line;
+
+        if (!line.empty())
+            invisible_boundry_side = static_cast<Side>(get_valid_int("Side must be a number: left [0], right [1], top [2], bottom [3]: ", line, 0, 4));
+
+        std::cout << "Enter length for side: ";
+        std::cin >> line;
+        if (!line.empty())
+            invisible_boundry_length = get_valid_int("Length must be a valid number: ", line);
+
+        break;
+    default:
+        throw std::invalid_argument("invalid object id to edit: " + std::to_string(static_cast<int>(object_selected_from_menu)));
+    }
+}
+
+
 void LevelEditor::draw(Graphics& g) const
 { // TODO
     for (Object* o : objects)
         o->draw(g);
 
-    if (selected)
+    if (object_menu_open)
+    {
+        g.SetColor(D2D1::ColorF::AntiqueWhite);
+        g.FillRect(D2D1::RectF(36_hu, 0, SCREEN_WIDTH, SCREEN_HEIGHT));
+
+        g.DrawBitmap(object_menu_sprites[static_cast<int>(object_selected_from_menu)], object_menu_sprite_bounds[static_cast<int>(object_selected_from_menu)], { 39.0_hu, 13.0_vu, 45.0_hu, 19.0_vu});
+        g.DrawBitmap(object_menu_sprites[(static_cast<int>(object_selected_from_menu) + 1) % static_cast<int>(Object::TYPE::COUNT)], object_menu_sprite_bounds[(static_cast<int>(object_selected_from_menu) + 1) % static_cast<int>(Object::TYPE::COUNT)], { 40.0_hu, 23.0_vu, 45.0_hu, 28.0_vu});
+        int next_object = static_cast<int>(object_selected_from_menu) - 1;
+        if (next_object < 0)
+            next_object = static_cast<int>(Object::TYPE::COUNT) - 1;
+
+        g.DrawBitmap(object_menu_sprites[next_object], object_menu_sprite_bounds[next_object], { 40.0_hu, 5_vu, 45.0_hu, 9.0_vu });
+
+        g.SetColor(D2D1::ColorF::Black);
+        g.DrawRect(D2D1::RectF(39.0_hu, 13.0_vu, 45.0_hu, 19.0_vu), 3.0f);
+    }
+    else if (selected)
     {
         g.SetColor(D2D1::ColorF::LimeGreen);
         const D2D1_POINT_2F p1 = D2D1::Point2F((*object_selected)->get_x(), (*object_selected)->get_y());
@@ -336,6 +505,9 @@ void LevelEditor::draw(Graphics& g) const
     }
 }
 
+ID2D1Bitmap* LevelEditor::object_menu_sprites[static_cast<int>(Object::TYPE::COUNT)];
+D2D1_RECT_F LevelEditor::object_menu_sprite_bounds[static_cast<int>(Object::TYPE::COUNT)];
+
 HRESULT LevelEditor::init_resources(Graphics& g)
 {
     HRESULT hr = WoodenFloor::init(g);
@@ -345,6 +517,32 @@ HRESULT LevelEditor::init_resources(Graphics& g)
 
     if (SUCCEEDED(hr))
         hr = Decoy::init(g);
+
+    for (int i = 0; i < static_cast<int>(Object::TYPE::COUNT); ++i)
+    {
+        if (SUCCEEDED(hr))
+        {
+            switch (static_cast<Object::TYPE>(i))
+            {
+            case Object::TYPE::WOODEN_FLOOR:
+                hr = g.LoadBitmapFromFile(L".\\images\\wooden_floor.png", &object_menu_sprites[i]);
+                object_menu_sprite_bounds[i] = { 0.0f, 0.0f, 32.0f, 32.0f };
+                break;
+            case Object::TYPE::SPIKE:
+                hr = g.LoadBitmapFromFile(L".\\images\\spikes.png", &object_menu_sprites[i]);
+                object_menu_sprite_bounds[i] = { 64.0f, 0.0f, 96.0f, 32.0f };
+                break;
+            case Object::TYPE::INVISIBLE_BOUNDRY:
+                hr = g.LoadBitmapFromFile(L".\\images\\red_line.png", &object_menu_sprites[i]);
+                object_menu_sprite_bounds[i] = { 0.0f, 0.0f, 32.0f, 32.0f };
+                break;
+            default:
+                throw std::invalid_argument("trying to initialize a sprite with an invalid type");
+            }
+        } else {
+            std::cout << i << '\n';
+        }
+    }
 
     return hr;
 }
