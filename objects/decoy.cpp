@@ -27,7 +27,7 @@ void Decoy::move(const Vec2I& amount)
     // dont need to call Object::move beacuse we dont have any collidables or killables to move
 }
 
-
+#ifdef LEVEL_EDITOR
 void Decoy::write_to_file(std::ofstream& output_file) const
 {
     output_file << '\n' << std::to_string(static_cast<int>(Object::TYPE::DECOY))
@@ -40,3 +40,7 @@ int Decoy::get_x() const { return position.x; }
 int Decoy::get_y() const { return position.y; }
 int Decoy::get_width() const { return WIDTH; }
 int Decoy::get_height() const { return HEIGHT; }
+
+void Decoy::edit() {}
+
+#endif

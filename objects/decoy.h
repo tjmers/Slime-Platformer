@@ -14,12 +14,15 @@ public:
     constexpr static int WIDTH = 2_hu, HEIGHT = 2_hu; // the same as the one in the player class
     static_assert(WIDTH == HEIGHT);
     static HRESULT init(Graphics& g);
-    void write_to_file(std::ofstream& output_file) const override;
 
+#ifdef LEVEL_EDITOR
+    void write_to_file(std::ofstream& output_file) const override;
     int get_x() const override;
     int get_y() const override;
     int get_width() const override;
     int get_height() const override;
+    void edit() override;
+#endif
 private:
     Vec2I position;
 

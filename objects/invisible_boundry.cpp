@@ -1,9 +1,16 @@
 #include "invisible_boundry.h"
 
+#ifdef LEVEL_EDITOR
+#include "../main/io_assistance.h"
+#endif
+
+
 InvisibleBoundry::InvisibleBoundry(Side side, int x, int y, int length)
     : Object({Collidable(side, x, y, length)}, {}) {}
 
 
+
+#ifdef LEVEL_EDITOR
 void InvisibleBoundry::write_to_file(std::ofstream& output_file) const
 {
     output_file << '\n' << std::to_string(static_cast<int>(Object::TYPE::INVISIBLE_BOUNDRY))
@@ -39,3 +46,22 @@ int InvisibleBoundry::get_height() const
     else
         return 5;
 }
+
+
+void InvisibleBoundry::edit()
+{
+    std::string line;
+    std::cout << "Enter side: left [0], right [1], top [2], bottom [3]: ";
+    std::cin >> line;
+
+    if (line != "-")
+        collidables[0].set_side(static_cast<Side>(IoAssistance::get_valid_int("Side must be a number: left [0], right [1], top [2], bottom [3]: ", line, 0, 4)));
+
+    std::cout << "Enter length for side (" << collidables[0].get_length() << "): ";
+    std::cin >> line;
+    if (line != "-")
+        collidables[0].set_length(IoAssistance::get_valid_int("Length must be a valid number: ", line));
+
+}
+
+#endif

@@ -2,6 +2,11 @@
 
 #include <iostream>
 
+#ifdef LEVEL_EDITOR
+#include "../main/io_assistance.h"
+#endif
+
+
 ID2D1Bitmap* Spike::sprites = nullptr;
 
 Spike::Spike(Facing direction, int x, int y)
@@ -50,6 +55,7 @@ void Spike::draw(Graphics& g) const
 }
 
 
+#ifdef LEVEL_EDITOR
 void Spike::write_to_file(std::ofstream& output_file) const
 {
     output_file << '\n' << std::to_string(static_cast<int>(Object::TYPE::SPIKE))
@@ -57,8 +63,25 @@ void Spike::write_to_file(std::ofstream& output_file) const
                 << '\n' << std::to_string(static_cast<float>(position.y) / V_UNIT);
 }
 
-
 int Spike::get_x() const { return position.x; }
 int Spike::get_y() const { return position.y; }
 int Spike::get_width() const { return WIDTH; }
 int Spike::get_height() const { return HEIGHT; }
+
+void Spike::edit()
+{
+    std::string line;
+    std::cout << "Enter rotation: left [0], right [1], up [2], down [3]: ";
+    std::cin >> line;
+
+    if (line != "-")
+    {
+        Facing new_direction = static_cast<Spike::Facing>(IoAssistance::get_valid_int("Rotation must be a number: left [0], right [1], up [2], down [3]: ", line, 0, 4));
+        killables = make_killables(new_direction, position.x, position.y);
+    }
+
+
+}
+
+
+#endif
