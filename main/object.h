@@ -1,6 +1,10 @@
 #pragma once
 
+#ifdef LEVEL_EDITOR
 #include <fstream>
+#include <iostream>
+#include <string>
+#endif
 #include <vector>
 
 #include "collidable.h"
@@ -17,17 +21,21 @@ public:
 
     inline const std::vector<Collidable>& get_collidables() const { return collidables; }
     inline const std::vector<Collidable>& get_killables() const { return killables; }
+    enum class TYPE
+    {
+        DECOY = -1, WOODEN_FLOOR, SPIKE, INVISIBLE_BOUNDRY, COUNT
+    };
+#ifdef LEVEL_EDITOR
     virtual int get_x() const = 0; // ------\.
     virtual int get_y() const = 0; //       These just are used for the level editor to determine
     virtual int get_width() const = 0;//    /               if an click intersects an object to select it
     virtual int get_height() const = 0;//--/                    (maybe wrap it in a #ifdef later)
 
-    enum class TYPE
-    {
-        DECOY = -1, WOODEN_FLOOR, SPIKE, INVISIBLE_BOUNDRY, COUNT
-    };
 
     virtual void write_to_file(std::ofstream& output_file) const = 0;
+
+    virtual void edit() = 0;
+#endif
 
 protected:
     std::vector<Collidable> collidables;

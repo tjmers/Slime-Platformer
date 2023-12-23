@@ -78,6 +78,26 @@ void Input::HandleKeyboardInput(UINT_PTR key_code, bool is_down) {
 			keys[static_cast<int>(Key::E)].frame_number = 0;
 		keys[static_cast<int>(Key::E)].is_down = is_down;
 		break;
+	case VK_OEM_4:
+		if (keys[static_cast<int>(Key::LBRACKET)].is_down != is_down)
+			keys[static_cast<int>(Key::LBRACKET)].frame_number = 0;
+		keys[static_cast<int>(Key::LBRACKET)].is_down = is_down;
+		break;
+	case VK_OEM_6:
+		if (keys[static_cast<int>(Key::RBRACKET)].is_down != is_down)
+			keys[static_cast<int>(Key::RBRACKET)].frame_number = 0;
+		keys[static_cast<int>(Key::RBRACKET)].is_down = is_down;
+		break;
+	case VK_CONTROL:
+		if (keys[static_cast<int>(Key::CTRL)].is_down != is_down)
+			keys[static_cast<int>(Key::CTRL)].frame_number = 0;
+		keys[static_cast<int>(Key::CTRL)].is_down = is_down;
+		break;
+	case 'Z':
+		if (keys[static_cast<int>(Key::Z)].is_down != is_down)
+			keys[static_cast<int>(Key::Z)].frame_number = 0;
+		keys[static_cast<int>(Key::Z)].is_down = is_down;
+		break;
 
 	}
 }

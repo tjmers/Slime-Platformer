@@ -45,7 +45,7 @@ std::vector<Object*> Level::get_objects(int level_id)
 
 void Level::update(const float multiplier)
 {
-    if (Input::GetKeyDown(Key::SPACE) && Input::GetKey(Key::SPACE).frame_number == 0)
+    if (Input::GetKeyDown(Key::SPACE) && Input::GetKeyFrame == 0)
     {
         reset();
         return;

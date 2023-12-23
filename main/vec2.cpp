@@ -66,6 +66,12 @@ Vec2F::operator Vec2I() const
     return Vec2I(static_cast<int>(x), static_cast<int>(y));
 }
 
+void Vec2F::reverse()
+{
+    x = -x;
+    y = -y;
+}
+
 
 
 
@@ -131,4 +137,10 @@ Vec2I::operator bool() const
 Vec2I::operator Vec2F() const
 {
     return Vec2F(static_cast<float>(x), static_cast<float>(y));
+}
+
+void Vec2I::reverse()
+{
+    x = -x;
+    y = -y;
 }

@@ -1,4 +1,4 @@
-// compilation command: g++ creator/platformer_creator.cpp creator/level_editor.cpp main/input.cpp main/vec2.cpp main/graphics.cpp main/collidable.cpp main/object.cpp objects/wooden_floor.cpp objects/invisible_boundry.cpp objects/spike.cpp objects/decoy.cpp -ld2d1 -lWindowsCodecs -lole32 -o level_creator.exe
+// compilation command: g++ -DLEVEL_EDITOR creator/platformer_creator.cpp creator/level_editor.cpp creator/action.cpp creator/stack_max_capacity.cpp main/input.cpp main/vec2.cpp main/graphics.cpp main/level_loader.cpp main/io_assistance.cpp main/collidable.cpp main/object.cpp objects/wooden_floor.cpp objects/invisible_boundry.cpp objects/spike.cpp objects/decoy.cpp -ld2d1 -lWindowsCodecs -lole32 -o level_creator.exe -std=c++20
 // 																																																																											Optional: -O3
 #include <chrono>
 #include <stdexcept>
@@ -113,7 +113,6 @@ int CALLBACK WinMain(
 		else {
 			while (lag >= timestep) {
 				lag -= timestep;
-                constexpr static int ONE_BILLION = 1e9;
 				level_editor.update();
                 frame_delta_time = 0;
 				Input::Update();

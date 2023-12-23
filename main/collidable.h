@@ -24,10 +24,25 @@ public:
     void move(int x, int y);
     void move(const Vec2I& amount);
 
+#ifdef LEVEL_EDITOR
+    inline void set_length(int new_length) { length = new_length; }
+    inline void set_side(Side new_side) { side = new_side; }
+
+#endif
+
 #ifdef DRAW_COLLIDABLES_
     void draw(Graphics& g) const;
 #endif // DRAW_COLLIDABLES_
 private:
-    const Side side;
-    int x, y, length;
+
+#ifndef LEVEL_EDITOR
+    const
+#endif
+    Side side;
+    int x, y;
+
+#ifndef LEVEL_EDITOR
+    const
+#endif
+    int length;
 };

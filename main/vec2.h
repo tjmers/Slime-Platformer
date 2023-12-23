@@ -22,6 +22,8 @@ public:
     void operator/=(const float& scalar);
 
     operator Vec2I() const;
+
+    void reverse();
 };
 
 struct Vec2I
@@ -46,4 +48,6 @@ public:
     operator bool() const;
 
     operator Vec2F() const;
+
+    void reverse();
 };

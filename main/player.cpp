@@ -217,19 +217,19 @@ void Player::move(const Collidable& collidable)
     case Side::BOTTOM:
         position.y = collidable.get_y() - HEIGHT - 1.0f;
         velocity.y = 0.0f;
-        standing_on = const_cast<Collidable*>(&collidable);
+        standing_on = &collidable;
         sliding_left = nullptr;
         sliding_right = nullptr;
         break;
     case Side::LEFT:
         position.x = collidable.get_x();
         velocity.x = 0.0f;
-        sliding_left = const_cast<Collidable*>(&collidable);
+        sliding_left = &collidable;
         break;
     case Side::RIGHT:
         position.x = collidable.get_x() - WIDTH;
         velocity.x = 0.0f;
-        sliding_right = const_cast<Collidable*>(&collidable);
+        sliding_right = &collidable;
         break;
     }
 }

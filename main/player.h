@@ -37,9 +37,9 @@ private:
     constexpr static float CAMERA_SPEED = 0.2f; // 0 < CAMERA_SPEED < 1
 
 
-    Collidable* standing_on;
-    Collidable* sliding_left;
-    Collidable* sliding_right;
+    const Collidable* standing_on;
+    const Collidable* sliding_left;
+    const Collidable* sliding_right;
 
     void update_velocity(const float& multiplier);
     void update_velocity_x(const float& multiplier);
