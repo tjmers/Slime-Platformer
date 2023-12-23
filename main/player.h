@@ -13,6 +13,7 @@ class Player
 
 public:
     Player(const float x, const float y, const int left_limit, const int right_limit, const int top_limit, const int bottom_limit);
+    Player(const Vec2F& position, const D2D1_RECT_F& player_bounds);
     // Player(const Player&& player);
 
     void reset();
@@ -23,8 +24,7 @@ public:
     Vec2I update(const float& multiplier, const std::vector<Object*>& objects);
     void draw(Graphics& g) const;
 
-    inline void set_left_limit(int left_limit) { this->left_limit = left_limit; }
-    inline void set_right_limit(int right_limit) { this->right_limit = right_limit; }
+    inline const Vec2F& get_position() const { return position; }
 
     static HRESULT init(Graphics& g);
 
@@ -85,15 +85,12 @@ private:
     constexpr static int COYOTE_FRAMES = 5, JUMP_BUFFER_FRAMES = 5;
 
     static ID2D1Bitmap* sprite;
-    constexpr static D2D1_RECT_F sprite_right_small = { 0.0f, 0.0f, 32.0f, 17.0f };
-    constexpr static D2D1_RECT_F sprite_right_big = { 32.0f, 0.0f, 64.0f, 17.0f };
-    
-    constexpr static D2D1_RECT_F sprite_left_small = { 64.0f, 0.0f, 96.0f, 17.0f };
-    constexpr static D2D1_RECT_F sprite_left_big = { 96.0f, 0.0f, 128.0f, 17.0f };
+
+    constexpr static D2D1_RECT_F sprite_boxes[] = { { 0.0f, 0.0f, 32.0f, 17.0f }, { 32.0f, 0.0f, 64.0f, 17.0f }, { 64.0f, 0.0f, 96.0f, 17.0f }, { 96.0f, 0.0f, 128.0f, 17.0f } };
     
     enum class Direction
     {
-        LEFT, RIGHT
+        RIGHT, LEFT
     };
 
     Direction facing;

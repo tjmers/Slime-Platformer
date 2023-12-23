@@ -1,5 +1,5 @@
 // compilation command: g++ -DLEVEL_EDITOR creator/platformer_creator.cpp creator/level_editor.cpp creator/action.cpp creator/stack_max_capacity.cpp main/input.cpp main/vec2.cpp main/graphics.cpp main/level_loader.cpp main/io_assistance.cpp main/collidable.cpp main/object.cpp objects/wooden_floor.cpp objects/invisible_boundry.cpp objects/spike.cpp objects/decoy.cpp -ld2d1 -lWindowsCodecs -lole32 -o level_creator.exe -std=c++20
-// 																																																																											Optional: -O3
+// 																																																																								                                                                                                                                    			Optional: -O3
 #include <chrono>
 #include <stdexcept>
 #include <iostream>
@@ -8,6 +8,7 @@
 
 #include "../main/graphics.h"
 #include "../main/input.h"
+#include "../main/io_assistance.h"
 #include "level_editor.h"
 
 
@@ -75,16 +76,8 @@ int CALLBACK WinMain(
 	
 	Input::Reset();
 
-	int should_make_new_level;
-
-	do {
-		std::cout << "Load existing level? [y/n]: ";
-		should_make_new_level = getchar();
-		if (should_make_new_level >= static_cast<int>('A') && should_make_new_level <= static_cast<int>('Z'))
-			should_make_new_level += 32;
-	} while (should_make_new_level != static_cast<int>('y') && should_make_new_level != static_cast<int>('n'));
-
-	LevelEditor level_editor = make_level_editor(should_make_new_level);
+	std::cout << "Load existing level? [y/n]: ";
+	LevelEditor level_editor = make_level_editor(IoAssistance::get_y_or_n());
 
 
 

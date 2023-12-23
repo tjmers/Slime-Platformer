@@ -43,13 +43,13 @@ D2D1_RECT_F get_player_bounds(const std::string& file_path)
         std::getline(input_file, line);
         std::getline(input_file, line);
         std::getline(input_file, line);
-        ret_val.left = static_cast<int>(std::stof(line) / H_UNIT);
+        ret_val.left = static_cast<int>(std::stof(line) * H_UNIT);
         std::getline(input_file, line);
-        ret_val.right = static_cast<int>(std::stof(line) / H_UNIT);
+        ret_val.right = static_cast<int>(std::stof(line) * H_UNIT);
         std::getline(input_file, line);
-        ret_val.top = static_cast<int>(std::stof(line) / V_UNIT);
+        ret_val.top = static_cast<int>(std::stof(line) * V_UNIT);
         std::getline(input_file, line);
-        ret_val.bottom = static_cast<int>(std::stof(line) / V_UNIT);
+        ret_val.bottom = static_cast<int>(std::stof(line) * V_UNIT);
         input_file.close();
     }
     else
@@ -62,7 +62,9 @@ D2D1_RECT_F get_player_bounds(const std::string& file_path)
 std::vector<Object*> get_objects(const std::string& file_path, const Vec2I& player_position)
 {
     std::vector<Object*> objects;
+#ifdef LEVEL_EDITOR
     objects.push_back(new Decoy(player_position));
+#endif
     std::ifstream input_file(file_path);
     
     if (input_file.is_open())
@@ -100,6 +102,54 @@ std::vector<Object*> get_objects(const std::string& file_path, const Vec2I& play
     }
 
     return objects;
+}
+
+std::vector<Object*> get_objects(const std::string& file_path)
+{
+
+#ifdef LEVEL_EDITOR
+    return get_objects(file_path, get_player_position(file_path));
+#else
+    std::vector<Object*> objects;
+    std::ifstream input_file(file_path);
+    
+    if (input_file.is_open())
+    {
+        std::string line;
+        // skip the first six lines; they are used for player data
+        std::getline(input_file, line);
+        std::getline(input_file, line);
+        std::getline(input_file, line);
+        std::getline(input_file, line);
+        std::getline(input_file, line);
+        std::getline(input_file, line);
+        while (std::getline(input_file, line))
+        {
+            switch (static_cast<Object::TYPE>(std::stoi(line)))
+            {
+            case Object::TYPE::WOODEN_FLOOR:
+                interpret_wooden_floor(line, input_file, objects);
+                break;
+            case Object::TYPE::SPIKE:
+                interpret_spike(line, input_file, objects);
+                break;
+            case Object::TYPE::INVISIBLE_BOUNDRY:
+                interpret_invisible_boundry(line, input_file, objects);
+                break;
+            case Object::TYPE::DECOY:
+                throw std::invalid_argument("cannot interpret a decoy");
+
+            default:
+                throw std::invalid_argument("error while parsing file by loading object with id: " + line);
+            }
+        }
+
+        input_file.close();
+    }
+
+    return objects;
+
+#endif
 }
 
 

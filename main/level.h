@@ -1,5 +1,7 @@
 #pragma once
 
+#include <array>
+#include <string>
 #include <vector>
 
 #include "graphics.h"
@@ -10,7 +12,8 @@ class Level
 {
 public:
 
-    Level(int id);
+    Level(const std::string& file_path);
+    Level(const int id);
     Level(const Player& player, const std::vector<Object*> objects);
     ~Level();
 
@@ -27,4 +30,5 @@ private:
     Player player;
     std::vector<Object*> objects;
     Vec2I distance_moved;
+    static std::array<std::string, 1> default_levels;
 };

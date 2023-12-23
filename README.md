@@ -17,3 +17,4 @@ DEL: delete object
 Z: undo
 
 Currently no real levels, but some will be made and a level selector screeen.
+If you try downloading an execultable to play, make sure that the images FOLDER is in the same directory as the executable

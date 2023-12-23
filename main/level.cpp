@@ -3,13 +3,21 @@
 #include <stdexcept>
 
 #include "input.h"
+#include "level_loader.h"
 #include "../objects/spike.h"
+#include "../objects/invisible_boundry.h"
 #include "../objects/wooden_floor.h"
 
 
-Level::Level(int id)
-    : player(get_player(id)), objects(get_objects(id)), distance_moved(0, 0)
+std::array<std::string, 1> Level::default_levels = { ".\\levels\\level1.slime" };
+
+
+Level::Level(const std::string& file_path)
+    : player(LevelLoader::get_player_position(file_path), LevelLoader::get_player_bounds(file_path)), objects(LevelLoader::get_objects(file_path, player.get_position())), distance_moved(0, 0)
 {}
+
+Level::Level(const int id)
+    : player(get_player(id)), objects(get_objects(id)), distance_moved(0, 0) {}
 
 Level::Level(const Player& player, const std::vector<Object*> objects)
     : player(player), objects(objects), distance_moved(0, 0) {}
@@ -22,30 +30,23 @@ Level::~Level()
 
 Player Level::get_player(int level_id)
 {
-    switch (level_id)
-    {
-    case 0:
-        return Player(20_hu, 3_vu, 6_hu, SCREEN_WIDTH - 6_hu, 5_vu, SCREEN_HEIGHT - 5_vu);
-    default:
+    if (level_id < 0 || level_id >= default_levels.size())
         throw std::invalid_argument("Invalid level ID");
-    }
+
+    return Player(LevelLoader::get_player_position(default_levels[level_id]), LevelLoader::get_player_bounds(default_levels[level_id]));
 }
 
 std::vector<Object*> Level::get_objects(int level_id)
 {
-    switch (level_id)
-    {
-    case 0:
-        return { new WoodenFloor(0, SCREEN_WIDTH, 28_vu, 4_vu),
-                 new Spike(Spike::Facing::UP, 40_hu, 26_vu), new Spike(Spike::Facing::LEFT, 42_hu, 26_vu), new Spike(Spike::Facing::RIGHT, 44_hu, 26_vu), new Spike(Spike::Facing::DOWN, 46_hu, 26_vu)};
-    default:
+    if (level_id < 0 || level_id >= default_levels.size())
         throw std::invalid_argument("Invalid level ID");
-    }
+
+    return LevelLoader::get_objects(default_levels[level_id]);
 }
 
 void Level::update(const float multiplier)
 {
-    if (Input::GetKeyDown(Key::SPACE) && Input::GetKeyFrame == 0)
+    if (Input::GetKeyDown(Key::SPACE) && Input::GetKeyFrame(Key::SPACE) == 0)
     {
         reset();
         return;
@@ -94,6 +95,7 @@ HRESULT Level::init_resources(Graphics& g)
 
     if (SUCCEEDED(hr))
         hr = Spike::init(g);
+
 
     return hr;
 }

@@ -30,9 +30,9 @@ public:
 
 #endif
 
-#ifdef DRAW_COLLIDABLES_
+#ifdef DRAW_HITBOXES
     void draw(Graphics& g) const;
-#endif // DRAW_COLLIDABLES_
+#endif
 private:
 
 #ifndef LEVEL_EDITOR

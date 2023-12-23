@@ -39,6 +39,7 @@ private:
     std::string file_path;
     Vec2F player_position;
     D2D1_RECT_F player_bounds;
+    bool draw_player_bounds;
     std::vector<Object*> objects; // the first will be used for the player sprite
     static std::string get_file_path();
 
@@ -56,6 +57,7 @@ private:
     void create_object();
     /// @brief Uses the terminal to edit the object properties
     void edit_object_properties_from_menu();
+    void edit_level_properties();
 
     bool object_menu_open;
     Object::TYPE object_selected_from_menu;

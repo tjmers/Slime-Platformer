@@ -6,6 +6,19 @@
 namespace IoAssistance
 {
 
+int get_y_or_n()
+{
+    int choice;
+    do
+    {
+        choice = getchar();
+        if (choice >= static_cast<int>('A') && choice <= static_cast<int>('Z'))
+			choice += 32;
+    }
+    while (choice != static_cast<int>('y') && choice != static_cast<int>('n'));
+
+    return choice;
+}
 
 int get_valid_int(const std::string& error_message, std::string& line_buffer)
 {
@@ -44,4 +57,26 @@ int get_valid_int(const std::string& error_message, std::string& line_buffer, in
         }
     }
 }
+
+float get_valid_float(const std::string& error_message, std::string& line_buffer)
+{
+    float num{0.f};
+    while (true)
+    {
+        try
+        {
+            num = std::stof(line_buffer);
+            return num;
+        }
+        catch (const std::invalid_argument& e)
+        {
+            std::cout << error_message;
+            std::cin >> line_buffer;
+        }
+    }
+
+
+}
+
+
 }

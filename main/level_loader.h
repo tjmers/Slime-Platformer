@@ -15,7 +15,8 @@ namespace LevelLoader
 Vec2F get_player_position(const std::string& file_path);
 D2D1_RECT_F get_player_bounds(const std::string& file_path);
 
-std::vector<Object*> get_objects(const std::string& fileP_path, const Vec2I& player_position);
+std::vector<Object*> get_objects(const std::string& file_path, const Vec2I& player_position);
+std::vector<Object*> get_objects(const std::string& file_path);
 void interpret_wooden_floor(std::string& line, std::ifstream& input_file, std::vector<Object*>& objects);
 void interpret_spike(std::string& line, std::ifstream& input_file, std::vector<Object*>& objects);
 void interpret_invisible_boundry(std::string& line, std::ifstream& input_file, std::vector<Object*>& objects);

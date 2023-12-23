@@ -10,7 +10,7 @@
 
 LevelEditor::LevelEditor()
     : file_path(get_file_path()), player_position(0.0f, 0.0f), objects({new Decoy(0, 0)}),
-      player_bounds({ 1.0_hu, 1.0_vu, SCREEN_WIDTH - 1.0_hu, SCREEN_HEIGHT - 1.0_vu }),
+      player_bounds({ 1.0_hu, 1.0_vu, SCREEN_WIDTH - 1.0_hu, SCREEN_HEIGHT - 1.0_vu }), draw_player_bounds(true),
       total_panned(0, 0), selected(false), object_selected(objects.end()),
       object_menu_open(false), object_selected_from_menu(static_cast<Object::TYPE>(0)),
       undos(), deleted_objects(),
@@ -21,7 +21,7 @@ LevelEditor::LevelEditor()
 
 LevelEditor::LevelEditor(const std::string& file_path)
     : file_path(std::move(file_path)), player_position(LevelLoader::get_player_position(this->file_path)), objects(LevelLoader::get_objects(this->file_path, player_position)),
-      player_bounds(LevelLoader::get_player_bounds(this->file_path)),
+      player_bounds(LevelLoader::get_player_bounds(this->file_path)), draw_player_bounds(true),
       total_panned(0, 0), selected(false), object_selected(objects.end()),
       object_menu_open(false), object_selected_from_menu(static_cast<Object::TYPE>(0)),
       undos(), deleted_objects(),
@@ -31,7 +31,7 @@ LevelEditor::LevelEditor(const std::string& file_path)
 {}
 
 LevelEditor::LevelEditor(Vec2F player_position, float player_left_bound, float player_right_bound, float player_upper_bound, float player_lower_bound, std::vector<Object*>& objects)
-    : player_position(player_position), player_bounds({ player_left_bound, player_upper_bound, player_right_bound, player_right_bound }),
+    : player_position(player_position), player_bounds({ player_left_bound, player_upper_bound, player_right_bound, player_right_bound }), draw_player_bounds(true),
       objects(objects), file_path(get_file_path()), total_panned(0, 0),
       selected(false), object_selected(objects.end()), object_menu_open(false), object_selected_from_menu(static_cast<Object::TYPE>(0)),
       undos(), deleted_objects(),
@@ -108,6 +108,8 @@ void LevelEditor::update()
         update_selection();
         if (selected)
             move_selected_object();
+        else if (Input::GetKeyDown(Key::E) && Input::GetKeyFrame(Key::E) == 0)
+            edit_level_properties();
 
     }
 
@@ -253,6 +255,18 @@ void LevelEditor::move_selected_object()
         object_selected = objects.end();
         return;
     }
+
+
+    if (Input::GetKeyDown(Key::E) && Input::GetKeyFrame(Key::E) == 0)
+    {
+        // adding an undo to this would be complicated. so we wont.
+        std::cout << "Editing Object (-) to keep value same\n";
+        (*object_selected)->edit();
+        std::cout << "Edit complete\n";
+        return;
+    }
+
+
     Vec2I amount_to_move(0, 0);
 
     if (Input::GetKeyDown(Key::LEFT))
@@ -286,7 +300,6 @@ void LevelEditor::move_selected_object()
     }));
     
   
-
     if (object_selected == objects.begin())
     {
         player_position += amount_to_move; // move the player if the decoy was selected
@@ -294,13 +307,6 @@ void LevelEditor::move_selected_object()
     }
 
 
-    if (Input::GetKeyDown(Key::E) && Input::GetKeyFrame(Key::E) == 0)
-    {
-        // adding an undo to this would be complicated. so we wont.
-        std::cout << "Editing Object (-) to keep value same\n";
-        (*object_selected)->edit();
-        std::cout << "Edit complete\n";
-    }
 }
 
 void LevelEditor::check_front_ordering()
@@ -471,6 +477,44 @@ void LevelEditor::edit_object_properties_from_menu()
     std::cout << "Object edited\n";
 }
 
+void LevelEditor::edit_level_properties()
+{
+    std::string line;
+    std::cout << "Enter a dash '-' to keep the same value\n";
+
+    std::cout << "Enter new value for left bound in number of h_units (was " + std::to_string(player_bounds.left / 1_hu) + ", max=" + std::to_string(NUM_H_UNIT) + "): ";
+    std::cin >> line;
+    if (line != "-")
+        player_bounds.left = IoAssistance::get_valid_float("x value must be a floating point number: ", line) * H_UNIT;
+
+    
+    std::cout << "Enter new value for right bound in number of h_units (was " + std::to_string(player_bounds.right / 1_hu) + ", max=" + std::to_string(NUM_H_UNIT) + "): ";
+    std::cin >> line;
+    if (line != "-")
+        player_bounds.right = IoAssistance::get_valid_float("x value must be a floating point number: ", line) * H_UNIT;
+
+    
+    std::cout << "Enter new value for upper bound in number of h_units (was " + std::to_string(player_bounds.top / 1_vu) + ", max=" + std::to_string(NUM_V_UNIT) + "): ";
+    std::cin >> line;
+    if (line != "-")
+        player_bounds.top = IoAssistance::get_valid_float("y value must be a floating point number: ", line) * V_UNIT;
+
+    
+    std::cout << "Enter new value for lower bound in number of h_units (was " + std::to_string(player_bounds.bottom / 1_vu) + ", max=" + std::to_string(NUM_V_UNIT) + "): ";
+    std::cin >> line;
+    if (line != "-")
+        player_bounds.bottom = IoAssistance::get_valid_float("y value must be a floating point number: ", line) * V_UNIT;
+
+    std::cout << "Should the player bounds be drawn [y/n]: ";
+    int should_draw_lines_input = IoAssistance::get_y_or_n();
+
+    if (should_draw_lines_input == 'y')
+        draw_player_bounds = true;
+    else
+        draw_player_bounds = false;
+    
+}
+
 
 void LevelEditor::draw(Graphics& g) const
 {
@@ -497,16 +541,18 @@ void LevelEditor::draw(Graphics& g) const
     else if (selected)
     {
         g.SetColor(D2D1::ColorF::LimeGreen);
-        const D2D1_POINT_2F p1 = D2D1::Point2F((*object_selected)->get_x(), (*object_selected)->get_y());
-        const D2D1_POINT_2F p2 = D2D1::Point2F(p1.x + (*object_selected)->get_width(), p1.y);
-        const D2D1_POINT_2F p3 = D2D1::Point2F(p2.x, p2.y + (*object_selected)->get_height());
-        const D2D1_POINT_2F p4 = D2D1::Point2F(p1.x, p3.y);
-
+        
         constexpr static float OUTLINE_THICKNESS = 3.0f;
-        g.DrawLine(p1, p2, OUTLINE_THICKNESS);
-        g.DrawLine(p2, p3, OUTLINE_THICKNESS);
-        g.DrawLine(p4, p3, OUTLINE_THICKNESS);
-        g.DrawLine(p1, p4, OUTLINE_THICKNESS);
+        
+        g.DrawRect(D2D1::RectF((*object_selected)->get_x(), (*object_selected)->get_y(),
+                               (*object_selected)->get_x() + (*object_selected)->get_width(), (*object_selected)->get_y() + (*object_selected)->get_height()),
+                                OUTLINE_THICKNESS);
+    }
+
+    if (draw_player_bounds)
+    {
+        g.SetColor(D2D1::ColorF(0.3f, 0.3f, 0.3f, 0.3f));
+        g.DrawRect(player_bounds, 2.0f);
     }
 }
 

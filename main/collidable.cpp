@@ -3,7 +3,7 @@
 Collidable::Collidable(Side side, int x, int y, int length)
     : side(side), x(x), y(y), length(length) {}
 
-#ifdef DRAW_COLLIDABLES_
+#ifdef DRAW_HITBOXES
 void Collidable::draw(Graphics& g) const
 {
     if (side == Side::TOP || side == Side::BOTTOM)
@@ -12,7 +12,7 @@ void Collidable::draw(Graphics& g) const
         g.DrawLine(D2D1::Point2F((float)x, (float)y), D2D1::Point2F((float)x, (float)(y + length)), 2.0f);
     
 }
-#endif // DRAW_COLLIDABLES_
+#endif
 
 
 void Collidable::move(int x, int y)

@@ -12,8 +12,10 @@
 
 constexpr int SCREEN_WIDTH = 960;
 constexpr int SCREEN_HEIGHT = 640;
-constexpr int H_UNIT = SCREEN_WIDTH / 48;
-constexpr int V_UNIT = SCREEN_HEIGHT / 32;
+constexpr int NUM_H_UNIT = 48;
+constexpr int NUM_V_UNIT = 32;
+constexpr int H_UNIT = SCREEN_WIDTH / NUM_H_UNIT;
+constexpr int V_UNIT = SCREEN_HEIGHT / NUM_V_UNIT;
 
 static_assert(V_UNIT == H_UNIT);
 

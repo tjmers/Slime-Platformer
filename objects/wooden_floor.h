@@ -12,13 +12,13 @@ public:
     void move(const Vec2I& amount) override;
     void draw(Graphics& g) const override;
     static HRESULT init(Graphics& g);
-    void write_to_file(std::ofstream& output_file) const override;
 
 #ifdef LEVEL_EDITOR
     int get_x() const override;
     int get_y() const override;
     int get_width() const override;
     int get_height() const override;
+    void write_to_file(std::ofstream& output_file) const override;
     void edit() override;
 #endif
 private:

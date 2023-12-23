@@ -15,10 +15,12 @@ HRESULT Player::init(Graphics& g)
 Player::Player(const float x, const float y, const int left_limit, const int right_limit, const int top_limit, const int bottom_limit)
     : position(x, y), velocity(0.0f, 0.0f), starting_position(x, y), standing_on(nullptr), updates_since_falling(10), // arbritray number bigger than coyote frames
       left_limit(left_limit), right_limit(right_limit - WIDTH), top_limit(top_limit), bottom_limit(bottom_limit - HEIGHT), sprite_cycle(0), facing(Direction::LEFT),
-      sliding_left(nullptr), sliding_right(nullptr)
-    {
-        // std::cout << "PLAYER INITIALIZED\n";
-    }
+      sliding_left(nullptr), sliding_right(nullptr) {}
+
+Player::Player(const Vec2F& position, const D2D1_RECT_F& player_bounds)
+    : position(position), velocity(0.0f, 0.0f), starting_position(position), standing_on(nullptr), updates_since_falling(10), // arbritray number bigger than coyote frames
+      left_limit(player_bounds.left), right_limit(player_bounds.right - WIDTH), top_limit(player_bounds.top), bottom_limit(player_bounds.bottom - HEIGHT), sprite_cycle(0), facing(Direction::LEFT),
+      sliding_left(nullptr), sliding_right(nullptr) {}
 
 
 void Player::reset()
@@ -35,16 +37,11 @@ void Player::reset()
 
 void Player::draw(Graphics& g) const
 {
-    if (sprite_cycle < 15)
-        if (facing == Direction::LEFT)
-            g.DrawBitmap(sprite, sprite_left_small, D2D1::RectF(position.x, position.y, position.x + WIDTH, position.y + HEIGHT));
-        else
-            g.DrawBitmap(sprite, sprite_right_small, D2D1::RectF(position.x, position.y, position.x + WIDTH, position.y + HEIGHT));
-    else
-        if (facing == Direction::LEFT)
-            g.DrawBitmap(sprite, sprite_left_big, D2D1::RectF(position.x, position.y, position.x + WIDTH, position.y + HEIGHT));
-        else
-            g.DrawBitmap(sprite, sprite_right_big, D2D1::RectF(position.x, position.y, position.x + WIDTH, position.y + HEIGHT));
+    g.DrawBitmap(sprite, sprite_boxes[(sprite_cycle < 15) + static_cast<int>(facing) * 2], D2D1::RectF(position.x, position.y, position.x + WIDTH, position.y + HEIGHT));
+#ifdef DRAW_HITBOXES
+    g.SetColor(D2D1::ColorF::Red);
+    g.DrawRect(D2D1::RectF(position.x, position.y, position.x + WIDTH, position.y + HEIGHT), 3.0f);
+#endif
 }
 
 
