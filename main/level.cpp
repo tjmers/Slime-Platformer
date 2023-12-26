@@ -8,20 +8,25 @@
 #include "../objects/spike.h"
 #include "../objects/invisible_boundry.h"
 #include "../objects/wooden_floor.h"
+#include "../objects/dirt.h"
+#include "../objects/grass.h"
+#include "../objects/stone_wall.h"
 
 
 std::array<std::string, 1> Level::default_levels = { ".\\levels\\level1.slime" };
 
 
 Level::Level(const std::string& file_path)
-    : player(LevelLoader::get_player_position(file_path), LevelLoader::get_player_bounds(file_path)), objects(LevelLoader::get_objects(file_path, player.get_position())), distance_moved(0, 0)
+    : player(LevelLoader::get_player_position(file_path), LevelLoader::get_player_bounds(file_path)),
+      objects(LevelLoader::get_objects(file_path, player.get_position())), distance_moved(0, 0),
+      background(LevelLoader::get_background_color(file_path))
 {}
 
 Level::Level(const int id)
-    : player(get_player(id)), objects(get_objects(id)), distance_moved(0, 0) {}
+    : player(get_player(id)), objects(get_objects(id)), background(get_background_color(id)), distance_moved(0, 0) {}
 
-Level::Level(const Player& player, const std::vector<Object*> objects)
-    : player(player), objects(objects), distance_moved(0, 0) {}
+Level::Level(const Player& player, const std::vector<Object*>& objects, const D2D1_COLOR_F& background_color)
+    : player(player), objects(objects), distance_moved(0, 0), background(background_color) {}
 
 Level::~Level()
 {
@@ -43,6 +48,14 @@ std::vector<Object*> Level::get_objects(int level_id)
         throw std::invalid_argument("Invalid level ID");
 
     return LevelLoader::get_objects(default_levels[level_id]);
+}
+
+D2D1_COLOR_F Level::get_background_color(int level_id)
+{
+    if (level_id < 0 || level_id >= default_levels.size())
+        throw std::invalid_argument("Invalid level ID");
+
+    return LevelLoader::get_background_color(default_levels[level_id]);
 }
 
 void Level::update(const float multiplier)
@@ -69,6 +82,7 @@ void Level::update(const float multiplier)
 
 void Level::draw(Graphics& g) const
 {
+    g.ClearScreen(background);
     for (const Object* o : objects)
         o->draw(g);
     g.SetColor(D2D1::ColorF::CornflowerBlue);
@@ -100,6 +114,15 @@ HRESULT Level::init_resources(Graphics& g)
 
     if (SUCCEEDED(hr))
         hr = Stone::init(g);
+
+    if (SUCCEEDED(hr))
+        hr = StoneWall::init(g);
+
+    if (SUCCEEDED(hr))
+        hr = Dirt::init(g);
+    
+    if (SUCCEEDED(hr))
+        hr = Grass::init(g);
 
     return hr;
 }

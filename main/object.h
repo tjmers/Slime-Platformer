@@ -27,7 +27,7 @@ public:
     inline const std::vector<Collidable>& get_killables() const { return killables; }
     enum class TYPE
     {
-        DECOY = -1, WOODEN_FLOOR, SPIKE, INVISIBLE_BOUNDRY, STONE, COUNT
+        DECOY = -1, WOODEN_FLOOR, SPIKE, INVISIBLE_BOUNDRY, STONE, GRASS, DIRT, STONE_WALL, COUNT
     };
 #ifdef LEVEL_EDITOR
     virtual Object* clone() const = 0;

@@ -1,4 +1,4 @@
-// compilation command: g++ -DLEVEL_EDITOR creator/platformer_creator.cpp creator/level_editor.cpp creator/level_editor_menu.cpp creator/action.cpp creator/stack_max_capacity.cpp main/input.cpp main/vec2.cpp main/graphics.cpp main/level_loader.cpp main/io_assistance.cpp main/collidable.cpp main/object.cpp objects/wooden_floor.cpp objects/invisible_boundry.cpp objects/spike.cpp objects/decoy.cpp objects/stone.cpp -ld2d1 -lWindowsCodecs -lole32 -o level_creator.exe -std=c++20
+// compilation command: g++ -DLEVEL_EDITOR creator\platformer_creator.cpp creator\level_editor.cpp creator\level_editor_menu.cpp creator\action.cpp creator\stack_max_capacity.cpp main\input.cpp main\vec2.cpp main\graphics.cpp main\level_loader.cpp main\io_assistance.cpp main\collidable.cpp main\object.cpp objects\wooden_floor.cpp objects\invisible_boundry.cpp objects\spike.cpp objects\decoy.cpp objects\stone.cpp objects\dirt.cpp objects\grass.cpp objects\stone_wall.cpp -ld2d1 -lWindowsCodecs -lole32 -o level_creator.exe -std=c++20
 // 																																																																								                                                                                                                                    			Optional: -DDRAW_HITBOXES -O3
 #include <chrono>
 #include <stdexcept>
@@ -112,7 +112,6 @@ int CALLBACK WinMain(
 			}
 
 			graphics.BeginDraw();
-			graphics.ClearScreen(0.5f, 0.0f, 0.0f);
 			level_editor.draw(graphics);
 			graphics.EndDraw();
 		}

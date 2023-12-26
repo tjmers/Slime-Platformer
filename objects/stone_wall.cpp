@@ -1,32 +1,26 @@
-#include "wooden_floor.h"
+#include "stone_wall.h"
 
 #ifdef LEVEL_EDITOR
 #include "../main/io_assistance.h"
 #endif
 
 
-ID2D1Bitmap* WoodenFloor::sprite = nullptr;
+ID2D1Bitmap* StoneWall::sprite = nullptr;
 
-WoodenFloor::WoodenFloor(const int& x, const int& y, const int& width, const int& height)
-    : Object(make_collidables(x, width, y), std::vector<Collidable>()), position(x, y), width(width), height(height) {}
+StoneWall::StoneWall(const Vec2I& position, const int width, const int height)
+    : Object({}, {}), position(position), width(width), height(height) {}
 
-std::vector<Collidable> WoodenFloor::make_collidables(const int& x1, const int& width, const int& y)
+
+void StoneWall::move(const Vec2I& amount)
 {
-    return {Collidable(Side::BOTTOM, x1, y, width)};
+    position += amount; // no need to call Object::move since we dont have any collidables or killables. Same goes for StoneWall::draw(Graphics& g)
 }
 
-void WoodenFloor::move(const Vec2I& amount)
+void StoneWall::draw(Graphics& g) const
 {
-    Object::move(amount);
-    position += amount;
-}
-
-void WoodenFloor::draw(Graphics&g) const
-{
-    constexpr static int ONE_WIDTH = 8_hu, ONE_HEIGHT = 2_hu;
+    constexpr static int ONE_WIDTH = 2_hu, ONE_HEIGHT = 2_hu;
+    constexpr static int SPRITE_WIDTH = 32, SPRITE_HEIGHT = 32;
     static_assert(ONE_WIDTH / ONE_HEIGHT == SPRITE_WIDTH / SPRITE_HEIGHT);
-
-
     int current_x;
     for (current_x = position.x; current_x + ONE_WIDTH <= position.x + width && current_x < SCREEN_WIDTH; current_x += ONE_WIDTH)
     {
@@ -56,52 +50,51 @@ void WoodenFloor::draw(Graphics&g) const
             g.DrawBitmap(sprite, D2D1::RectF(0.0f, 0.0f, SPRITE_WIDTH * (static_cast<float>(position.x + width - current_x) / ONE_WIDTH), SPRITE_HEIGHT * (static_cast<float>(position.y + height - current_y) / ONE_HEIGHT)), D2D1::RectF(current_x, current_y, position.x + width, position.y + height));
     }
     
-    Object::draw(g);
 }
 
-HRESULT WoodenFloor::init(Graphics& g)
+
+HRESULT StoneWall::init(Graphics& g)
 {
-    return g.LoadBitmapFromFile(L".\\images\\wooden_floor.png", &sprite);
+    return g.LoadBitmapFromFile(L".\\images\\stone_wall.png", &sprite);
 }
+
 
 #ifdef LEVEL_EDITOR
 
-WoodenFloor::WoodenFloor(const WoodenFloor& other)
-    : Object(make_collidables(other.position.x, other.width, other.position.y), {}), position(other.position), width(other.width), height(other.height) {}
+StoneWall::StoneWall(const StoneWall& other)
+    : Object({}, {}),
+      position(other.position), width(other.width), height(other.height) {}
 
-Object* WoodenFloor::clone() const { return new WoodenFloor(*this); }
+Object* StoneWall::clone() const { return new StoneWall(*this); }
 
-void WoodenFloor::write_to_file(std::ofstream& output_file) const
+int StoneWall::get_x() const { return position.x; }
+int StoneWall::get_y() const { return position.y; }
+int StoneWall::get_width() const { return width; }
+int StoneWall::get_height() const { return height; }
+
+void StoneWall::write_to_file(std::ofstream& output_file) const
 {
-    output_file << '\n' << std::to_string(static_cast<int>(Object::TYPE::WOODEN_FLOOR))
+    output_file << '\n' << std::to_string(static_cast<int>(Object::TYPE::STONE_WALL))
                 << '\n' << std::to_string(static_cast<float>(position.x) / H_UNIT) << '\n' << std::to_string(static_cast<float>(position.y) / V_UNIT)
                 << '\n' << std::to_string(static_cast<float>(width) / H_UNIT) << '\n' << std::to_string(static_cast<float>(height) / V_UNIT);
 }
 
-int WoodenFloor::get_x() const { return position.x; }
-int WoodenFloor::get_y() const { return position.y; }
-int WoodenFloor::get_width() const { return width; }
-int WoodenFloor::get_height() const { return height; }
-
-void WoodenFloor::edit(StackMaxCapacity<Action, 1000>& undos)
+void StoneWall::edit(StackMaxCapacity<Action, 1000>& undos)
 {
     undos.push(Action(
         [this] (Action::Param& old_width_and_height)
         {
             width = old_width_and_height.four_byte1;
             height = old_width_and_height.four_byte2;
-        #ifdef DRAW_HITBOXES
-            collidables = make_collidables(position.x, width, position.y);
-        #endif
+
         }, Action::Param(width, height)
     ));
     std::string line;
     std::cout << "Width (" << static_cast<float>(width / H_UNIT) << "): ";
     std::cin >> line;
-    
+
     if (line != "-")
         width = static_cast<int>(IoAssistance::get_valid_float("Invalid width -- try again: ", line) * H_UNIT);
-    
 
     std::cout << "Height (" << static_cast<float>(height / V_UNIT) << "): ";
     std::cin >> line;
@@ -109,9 +102,6 @@ void WoodenFloor::edit(StackMaxCapacity<Action, 1000>& undos)
     if (line != "-")
         height = static_cast<int>(IoAssistance::get_valid_float("Invalid height -- try again: ", line) * V_UNIT);
 
-#ifdef DRAW_HITBOXES
-    collidables = make_collidables(position.x, width, position.y);
-#endif
 
 }
 

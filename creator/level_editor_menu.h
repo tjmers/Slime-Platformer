@@ -6,6 +6,9 @@
 #include "../objects/stone.h"
 #include "../objects/spike.h"
 #include "../objects/wooden_floor.h"
+#include "../objects/dirt.h"
+#include "../objects/grass.h"
+#include "../objects/stone_wall.h"
 
 
 class LevelEditorMenu
@@ -37,6 +40,9 @@ private:
     Side invisible_boundry_side;
     int invisible_boundry_length;
     int stone_width, stone_height;
+    int dirt_width, dirt_height;
+    int grass_width, grass_height;
+    int stone_wall_width, stone_wall_height;
 
     // object sprites in the object menu
     static ID2D1Bitmap* sprites[static_cast<int>(Object::TYPE::COUNT)];

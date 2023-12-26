@@ -53,6 +53,7 @@ public:
 
 	void SetColor(const D2D1::ColorF& color) const;
 	void ClearScreen(float r, float g, float b);
+	void ClearScreen(const D2D1_COLOR_F& color);
 	void DrawRect(const D2D1_RECT_F& rect, const float thickness) const;
 	void FillRect(const D2D1_RECT_F& rect) const;
 	void FillCircle(float x, float y, float r) const;

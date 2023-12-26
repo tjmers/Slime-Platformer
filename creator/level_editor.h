@@ -17,11 +17,6 @@
 #include "../main/object.h"
 #include "../main/graphics.h"
 #include "../main/vec2.h"
-#include "../objects/decoy.h"
-#include "../objects/invisible_boundry.h"
-#include "../objects/stone.h"
-#include "../objects/spike.h"
-#include "../objects/wooden_floor.h"
 
 
 /// @brief Make a level. When saving a level, the save file contains the data in VUNITS and HUNITS, they get converted when the program runs
@@ -42,12 +37,13 @@ private:
     Vec2F player_position;
     D2D1_RECT_F player_bounds;
     bool draw_player_bounds;
+    D2D1_COLOR_F background;
     std::vector<Object*> objects; // the first will be used for the player sprite
     static std::string get_file_path();
 
     constexpr static int PAN_SPEED = 4;
     constexpr static int OBJECT_MOVE_SPEED = 1;
-    constexpr static int SPEED_MULTIPLIER = 5;
+    constexpr static int SPEED_MULTIPLIER = 1_hu / 2;
     Vec2I total_panned;
     bool selected;
     std::vector<Object*>::iterator object_selected;

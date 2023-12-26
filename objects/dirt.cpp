@@ -1,31 +1,29 @@
-#include "wooden_floor.h"
+#include "dirt.h"
+
+#include <string>
 
 #ifdef LEVEL_EDITOR
 #include "../main/io_assistance.h"
 #endif
 
 
-ID2D1Bitmap* WoodenFloor::sprite = nullptr;
+Dirt::Dirt(const Vec2I& position, const int width, const int height)
+    : Object(make_collidables(position, width, height), {}),
+      position(position), width(width), height(height)
+{}
 
-WoodenFloor::WoodenFloor(const int& x, const int& y, const int& width, const int& height)
-    : Object(make_collidables(x, width, y), std::vector<Collidable>()), position(x, y), width(width), height(height) {}
 
-std::vector<Collidable> WoodenFloor::make_collidables(const int& x1, const int& width, const int& y)
+void Dirt::move(const Vec2I& amount)
 {
-    return {Collidable(Side::BOTTOM, x1, y, width)};
-}
-
-void WoodenFloor::move(const Vec2I& amount)
-{
-    Object::move(amount);
     position += amount;
+    Object::move(amount);
 }
 
-void WoodenFloor::draw(Graphics&g) const
+void Dirt::draw(Graphics& g) const
 {
-    constexpr static int ONE_WIDTH = 8_hu, ONE_HEIGHT = 2_hu;
+    constexpr int ONE_WIDTH = 2_hu;
+    constexpr int ONE_HEIGHT = 2_vu;
     static_assert(ONE_WIDTH / ONE_HEIGHT == SPRITE_WIDTH / SPRITE_HEIGHT);
-
 
     int current_x;
     for (current_x = position.x; current_x + ONE_WIDTH <= position.x + width && current_x < SCREEN_WIDTH; current_x += ONE_WIDTH)
@@ -55,35 +53,30 @@ void WoodenFloor::draw(Graphics&g) const
         if (current_y != position.y + height)
             g.DrawBitmap(sprite, D2D1::RectF(0.0f, 0.0f, SPRITE_WIDTH * (static_cast<float>(position.x + width - current_x) / ONE_WIDTH), SPRITE_HEIGHT * (static_cast<float>(position.y + height - current_y) / ONE_HEIGHT)), D2D1::RectF(current_x, current_y, position.x + width, position.y + height));
     }
-    
+
     Object::draw(g);
 }
 
-HRESULT WoodenFloor::init(Graphics& g)
-{
-    return g.LoadBitmapFromFile(L".\\images\\wooden_floor.png", &sprite);
-}
-
 #ifdef LEVEL_EDITOR
+Dirt::Dirt(const Dirt& other)
+    : Object(make_collidables(other.position, other.width, other.height), {}),
+      position(other.position), width(other.width), height(other.height) {}
 
-WoodenFloor::WoodenFloor(const WoodenFloor& other)
-    : Object(make_collidables(other.position.x, other.width, other.position.y), {}), position(other.position), width(other.width), height(other.height) {}
+Object* Dirt::clone() const { return new Dirt(*this); }
 
-Object* WoodenFloor::clone() const { return new WoodenFloor(*this); }
+int Dirt::get_x() const { return position.x; }
+int Dirt::get_y() const { return position.y; }
+int Dirt::get_width() const { return width; }
+int Dirt::get_height() const { return height; }
 
-void WoodenFloor::write_to_file(std::ofstream& output_file) const
+void Dirt::write_to_file(std::ofstream& output_file) const
 {
-    output_file << '\n' << std::to_string(static_cast<int>(Object::TYPE::WOODEN_FLOOR))
-                << '\n' << std::to_string(static_cast<float>(position.x) / H_UNIT) << '\n' << std::to_string(static_cast<float>(position.y) / V_UNIT)
-                << '\n' << std::to_string(static_cast<float>(width) / H_UNIT) << '\n' << std::to_string(static_cast<float>(height) / V_UNIT);
+    output_file << '\n' << static_cast<int>(Object::TYPE::DIRT)
+                << '\n' << static_cast<float>(position.x) / H_UNIT << '\n' << static_cast<float>(position.y) / V_UNIT
+                << '\n' << static_cast<float>(width) / H_UNIT << '\n' << static_cast<float>(height) / V_UNIT;
 }
 
-int WoodenFloor::get_x() const { return position.x; }
-int WoodenFloor::get_y() const { return position.y; }
-int WoodenFloor::get_width() const { return width; }
-int WoodenFloor::get_height() const { return height; }
-
-void WoodenFloor::edit(StackMaxCapacity<Action, 1000>& undos)
+void Dirt::edit(StackMaxCapacity<Action, 1000>& undos)
 {
     undos.push(Action(
         [this] (Action::Param& old_width_and_height)
@@ -91,7 +84,7 @@ void WoodenFloor::edit(StackMaxCapacity<Action, 1000>& undos)
             width = old_width_and_height.four_byte1;
             height = old_width_and_height.four_byte2;
         #ifdef DRAW_HITBOXES
-            collidables = make_collidables(position.x, width, position.y);
+            collidables = make_collidables(position.x, position.y, width);
         #endif
         }, Action::Param(width, height)
     ));
@@ -116,3 +109,11 @@ void WoodenFloor::edit(StackMaxCapacity<Action, 1000>& undos)
 }
 
 #endif
+
+
+ID2D1Bitmap* Dirt::sprite = nullptr;
+
+HRESULT Dirt::init(Graphics& g)
+{
+    return g.LoadBitmapFromFile(L".\\images\\dirt.png", &sprite);
+}

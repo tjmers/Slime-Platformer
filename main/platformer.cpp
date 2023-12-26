@@ -1,4 +1,4 @@
-// compilation command: g++ main\collidable.cpp main\level.cpp main\platformer.cpp main\level_loader.cpp main\vec2.cpp main\graphics.cpp main\input.cpp main\player.cpp main\object.cpp objects\wooden_floor.cpp objects\stone.cpp objects\invisible_boundry.cpp objects\spike.cpp -ld2d1 -lWindowsCodecs -lole32 -o platformer.exe -std=c++20
+// compilation command: g++ main\collidable.cpp main\level.cpp main\platformer.cpp main\level_loader.cpp main\vec2.cpp main\graphics.cpp main\input.cpp main\player.cpp main\object.cpp objects\wooden_floor.cpp objects\stone.cpp objects\invisible_boundry.cpp objects\spike.cpp objects\dirt.cpp objects\grass.cpp objects\stone_wall.cpp -ld2d1 -lWindowsCodecs -lole32 -o platformer.exe -std=c++20
 //    																																																																												optional: -DDRAW_HITBOXES -O3
 #include <chrono>
 
@@ -98,7 +98,6 @@ int CALLBACK WinMain(
 			}
 
 			graphics.BeginDraw();
-			graphics.ClearScreen(0.5f, 0.0f, 0.0f);
 			level.draw(graphics);
 			graphics.EndDraw();
 		}

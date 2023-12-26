@@ -17,31 +17,38 @@ void Stone::move(const Vec2I& amount)
     Object::move(amount);
 }
 
-void Stone::draw(Graphics&g) const
+void Stone::draw(Graphics& g) const
 {
     constexpr static int ONE_WIDTH = 2_hu, ONE_HEIGHT = 2_hu;
     constexpr static int SPRITE_WIDTH = 32, SPRITE_HEIGHT = 32;
     static_assert(ONE_WIDTH / ONE_HEIGHT == SPRITE_WIDTH / SPRITE_HEIGHT);
-    for (int current_x = position.x; current_x < position.x + width && current_x < SCREEN_WIDTH; current_x += ONE_WIDTH)
+    int current_x;
+    for (current_x = position.x; current_x + ONE_WIDTH <= position.x + width && current_x < SCREEN_WIDTH; current_x += ONE_WIDTH)
     {
         if (current_x + ONE_WIDTH < 0)
             continue;
-        int x2 = std::min(current_x + ONE_WIDTH, position.x + width);
-
-        for (int current_y = position.y; current_y < position.y + height && current_y < SCREEN_HEIGHT; current_y += ONE_HEIGHT)
+        int current_y;
+        for (current_y = position.y; current_y + ONE_HEIGHT <= position.y + height && position.y < SCREEN_HEIGHT; current_y += ONE_HEIGHT)
         {
             if (current_y + ONE_HEIGHT < 0)
                 continue;
-            int y2 = std::min(current_y + ONE_HEIGHT, position.y + height);
-            if (x2 != current_x + ONE_WIDTH && y2 != current_y + ONE_HEIGHT)
-                g.DrawBitmap(sprite, D2D1::RectF(0.0f, 0.0f, SPRITE_WIDTH * (static_cast<float>(position.x + width - current_x) / ONE_WIDTH), SPRITE_HEIGHT * (static_cast<float>(position.y + height - current_y) / ONE_HEIGHT)), D2D1::RectF(current_x, current_y, x2, y2));
-            else if (x2 != current_x + ONE_WIDTH)
-                g.DrawBitmap(sprite, D2D1::RectF(0.0f, 0.0f, SPRITE_WIDTH * (static_cast<float>(position.x + width - current_x) / ONE_WIDTH), SPRITE_HEIGHT), D2D1::RectF(current_x, current_y, x2, y2));
-            else if (y2 != current_y + ONE_HEIGHT)
-                g.DrawBitmap(sprite, D2D1::RectF(0.0f, 0.0f, SPRITE_WIDTH, SPRITE_HEIGHT * (static_cast<float>(position.y + height - current_y) / ONE_HEIGHT)), D2D1::RectF(current_x, current_y, x2, y2));
-            else
-                g.DrawBitmap(sprite, D2D1::RectF(0.0f, 0.0f, SPRITE_WIDTH, SPRITE_HEIGHT), D2D1::RectF(current_x, current_y, x2, y2));
+            g.DrawBitmap(sprite, D2D1::RectF(0.0f, 0.0f, SPRITE_WIDTH, SPRITE_HEIGHT), D2D1::RectF(current_x, current_y, current_x + ONE_WIDTH, current_y + ONE_HEIGHT));
         }
+        
+        if (current_y != position.y + height)
+            g.DrawBitmap(sprite, D2D1::RectF(0.0f, 0.0f, SPRITE_WIDTH, SPRITE_HEIGHT * (static_cast<float>(position.y + height - current_y) / ONE_HEIGHT)), D2D1::RectF(current_x, current_y, current_x + ONE_WIDTH, position.y + height));
+
+    }
+
+    
+    if (current_x != position.x + width)
+    {
+        int current_y;
+        for (current_y = position.y; current_y + ONE_HEIGHT <= position.y + height; current_y += ONE_HEIGHT)
+            g.DrawBitmap(sprite, D2D1::RectF(0.0f, 0.0f, SPRITE_WIDTH * (static_cast<float>(position.x + width - current_x) / ONE_WIDTH), SPRITE_HEIGHT), D2D1::RectF(current_x, current_y, position.x + width, current_y + ONE_HEIGHT));
+
+        if (current_y != position.y + height)
+            g.DrawBitmap(sprite, D2D1::RectF(0.0f, 0.0f, SPRITE_WIDTH * (static_cast<float>(position.x + width - current_x) / ONE_WIDTH), SPRITE_HEIGHT * (static_cast<float>(position.y + height - current_y) / ONE_HEIGHT)), D2D1::RectF(current_x, current_y, position.x + width, position.y + height));
     }
     
     Object::draw(g);
@@ -50,7 +57,7 @@ void Stone::draw(Graphics&g) const
 
 HRESULT Stone::init(Graphics& g)
 {
-    return g.LoadBitmapFromFile(L"C:\\Users\\jacob_\\OneDrive\\Desktop\\C++\\Platformer\\images\\stone.png", &sprite);
+    return g.LoadBitmapFromFile(L".\\images\\stone.png", &sprite);
 }
 
 

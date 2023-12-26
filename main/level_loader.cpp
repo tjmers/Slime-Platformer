@@ -8,6 +8,9 @@
 #include "../objects/stone.h"
 #include "../objects/spike.h"
 #include "../objects/wooden_floor.h"
+#include "../objects/grass.h"
+#include "../objects/dirt.h"
+#include "../objects/stone_wall.h"
 
 namespace LevelLoader
 {
@@ -59,6 +62,39 @@ D2D1_RECT_F get_player_bounds(const std::string& file_path)
     return ret_val;
 }
 
+D2D1_COLOR_F get_background_color(const std::string& file_path)
+{
+    std::ifstream input_file(file_path);
+    std::string line;
+    float r, g, b;
+
+    if (input_file.is_open())
+    {
+        std::getline(input_file, line);
+        std::getline(input_file, line);
+        std::getline(input_file, line);
+        std::getline(input_file, line);
+        std::getline(input_file, line);
+        std::getline(input_file, line);
+        std::getline(input_file, line);
+        r = std::stof(line);
+        std::getline(input_file, line);
+        g = std::stof(line);
+        std::getline(input_file, line);
+        b = std::stof(line);
+    }
+    else
+        throw std::invalid_argument("invalid file_path passed to LevelLoader::get_background_color(std::string&)");
+    return { r, b, b, 0.0f };
+}
+
+void interpret_wooden_floor(std::string& line, std::ifstream& input_file, std::vector<Object*>& objects);
+void interpret_spike(std::string& line, std::ifstream& input_file, std::vector<Object*>& objects);
+void interpret_invisible_boundry(std::string& line, std::ifstream& input_file, std::vector<Object*>& objects);
+void interpret_stone(std::string& line, std::ifstream& input_file, std::vector<Object*>& objects);
+void interpret_dirt(std::string& line, std::ifstream& input_file, std::vector<Object*>& objects);
+void interpret_grass(std::string& line, std::ifstream& input_file, std::vector<Object*>& objects);
+void interpret_stone_wall(std::string& line, std::ifstream& input_file, std::vector<Object*>& objects);
 
 std::vector<Object*> get_objects(const std::string& file_path, const Vec2I& player_position)
 {
@@ -72,6 +108,9 @@ std::vector<Object*> get_objects(const std::string& file_path, const Vec2I& play
     {
         std::string line;
         // skip the first six lines; they are used for player data
+        std::getline(input_file, line);
+        std::getline(input_file, line);
+        std::getline(input_file, line);
         std::getline(input_file, line);
         std::getline(input_file, line);
         std::getline(input_file, line);
@@ -96,6 +135,15 @@ std::vector<Object*> get_objects(const std::string& file_path, const Vec2I& play
             case Object::TYPE::STONE:
                 interpret_stone(line, input_file, objects);
                 break;
+            case Object::TYPE::DIRT:
+                interpret_dirt(line, input_file, objects);
+                break;
+            case Object::TYPE::GRASS:
+                interpret_grass(line, input_file, objects);
+                break;
+            case Object::TYPE::STONE_WALL:
+                interpret_stone_wall(line, input_file, objects);
+                break;
 
             default:
                 throw std::invalid_argument("error while parsing file by loading object with id: " + line);
@@ -107,6 +155,7 @@ std::vector<Object*> get_objects(const std::string& file_path, const Vec2I& play
 
     return objects;
 }
+
 
 std::vector<Object*> get_objects(const std::string& file_path)
 {
@@ -127,6 +176,9 @@ std::vector<Object*> get_objects(const std::string& file_path)
         std::getline(input_file, line);
         std::getline(input_file, line);
         std::getline(input_file, line);
+        std::getline(input_file, line);
+        std::getline(input_file, line);
+        std::getline(input_file, line);
         while (std::getline(input_file, line))
         {
             switch (static_cast<Object::TYPE>(std::stoi(line)))
@@ -144,6 +196,15 @@ std::vector<Object*> get_objects(const std::string& file_path)
                 throw std::invalid_argument("cannot interpret a decoy");
             case Object::TYPE::STONE:
                 interpret_stone(line, input_file, objects);
+                break;
+            case Object::TYPE::GRASS:
+                interpret_grass(line, input_file, objects);
+                break;
+            case Object::TYPE::DIRT:
+                interpret_dirt(line, input_file, objects);
+                break;
+            case Object::TYPE::STONE_WALL:
+                interpret_stone_wall(line, input_file, objects);
                 break;
 
             default:
@@ -216,8 +277,48 @@ void interpret_stone(std::string& line, std::ifstream& input_file, std::vector<O
     objects.push_back(new Stone({x, y}, width, height));
 }
 
+void interpret_grass(std::string& line, std::ifstream& input_file, std::vector<Object*>& objects)
+{
+    std::getline(input_file, line);
+    int x = static_cast<int>(std::stof(line) * H_UNIT);
+    std::getline(input_file, line);
+    int y = static_cast<int>(std::stof(line) * V_UNIT);
+    std::getline(input_file, line);
+    int width = static_cast<int>(std::stof(line) * H_UNIT);
+    std::getline(input_file, line);
+    int height = static_cast<int>(std::stof(line) * V_UNIT);
+    objects.push_back(new Grass({x, y}, width, height));
+}
+
+void interpret_dirt(std::string& line, std::ifstream& input_file, std::vector<Object*>& objects)
+{
+    std::getline(input_file, line);
+    int x = static_cast<int>(std::stof(line) * H_UNIT);
+    std::getline(input_file, line);
+    int y = static_cast<int>(std::stof(line) * V_UNIT);
+    std::getline(input_file, line);
+    int width = static_cast<int>(std::stof(line) * H_UNIT);
+    std::getline(input_file, line);
+    int height = static_cast<int>(std::stof(line) * V_UNIT);
+    objects.push_back(new Dirt({x, y}, width, height));
+}
+
+void interpret_stone_wall(std::string& line, std::ifstream& input_file, std::vector<Object*>& objects)
+{
+    std::getline(input_file, line);
+    int x = static_cast<int>(std::stof(line) * H_UNIT);
+    std::getline(input_file, line);
+    int y = static_cast<int>(std::stof(line) * V_UNIT);
+    std::getline(input_file, line);
+    int width = static_cast<int>(std::stof(line) * H_UNIT);
+    std::getline(input_file, line);
+    int height = static_cast<int>(std::stof(line) * V_UNIT);
+    objects.push_back(new StoneWall({x, y}, width, height));    
+}
+
+
 #ifdef LEVEL_EDITOR
-void save_objects(std::string& file_path, const std::vector<Object*>& objects, const Vec2I& amount_moved, const Vec2I& player_position, const D2D1_RECT_F& player_bounds)
+void save_objects(std::string& file_path, const std::vector<Object*>& objects, const Vec2I& amount_moved, const Vec2I& player_position, const D2D1_RECT_F& player_bounds, const D2D1_COLOR_F& background_color)
 {
     // move back the objects
     Vec2I amount_to_move_objects = amount_moved * -1;
@@ -232,6 +333,9 @@ void save_objects(std::string& file_path, const std::vector<Object*>& objects, c
         output_file << std::to_string(static_cast<float>(player_position.x) / H_UNIT) << '\n' << std::to_string(static_cast<float>(player_position.y) / V_UNIT) << '\n'
                     << std::to_string(static_cast<float>(player_bounds.left) / H_UNIT) << '\n' << std::to_string(static_cast<float>(player_bounds.right) / H_UNIT) << '\n'
                     << std::to_string(static_cast<float>(player_bounds.top) / V_UNIT) << '\n' << std::to_string(static_cast<float>(player_bounds.bottom) / H_UNIT);
+
+        // write the background color
+        output_file << '\n' << background_color.r << '\n' << background_color.g << '\n' << background_color.b;
 
         for (auto i = std::next(objects.begin()); i != objects.end(); ++i)
             (*i)->write_to_file(output_file); // we dont want to write the decoy to the save file

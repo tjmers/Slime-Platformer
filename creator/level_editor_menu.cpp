@@ -12,7 +12,10 @@ LevelEditorMenu::LevelEditorMenu()
       wooden_floor_width(100), wooden_floor_height(100),
       spike_rotation(Spike::Facing::UP),
       invisible_boundry_side(Side::LEFT), invisible_boundry_length(50),
-      stone_width(H_UNIT), stone_height(V_UNIT) {}
+      stone_width(H_UNIT), stone_height(V_UNIT),
+      dirt_width(2_vu), dirt_height(2_vu),
+      grass_width(8_vu), grass_height(Grass::MAX_HEIGHT),
+      stone_wall_width(2_hu), stone_wall_height(2_vu) {}
 
 void LevelEditorMenu::draw(Graphics& g) const
 {
@@ -72,6 +75,15 @@ Object* LevelEditorMenu::get_object(const Vec2I& position) const
         
     case Object::TYPE::STONE:
         return new Stone(position, stone_width, stone_height);
+    
+    case Object::TYPE::GRASS:
+        return new Grass(position, grass_width, grass_height);
+    
+    case Object::TYPE::DIRT:
+        return new Dirt(position, dirt_width, dirt_height);
+
+    case Object::TYPE::STONE_WALL:
+        return new StoneWall(position, stone_wall_width, stone_wall_height);
 
     default:
         throw std::invalid_argument("trying to create object with an invalid ID");
@@ -138,6 +150,49 @@ void LevelEditorMenu::edit()
             stone_height = static_cast<int>(IoAssistance::get_valid_float("Invalid height -- try again: ", line) * H_UNIT);
 
         break;
+    case Object::TYPE::GRASS:
+        std::cout << "Width (" << static_cast<float>(grass_width / H_UNIT) << "): ";
+        std::cin >> line;
+        
+        if (line != "-")
+            grass_width = static_cast<int>(IoAssistance::get_valid_float("Invalid width -- try again: ", line) * H_UNIT);
+        
+
+        std::cout << "Height (" << static_cast<float>(grass_height / V_UNIT) << "): ";
+        std::cin >> line;
+
+        if (line != "-")
+            grass_height = static_cast<int>(IoAssistance::get_valid_float("Invalid height -- must be between 0 and 2 -- try again: ", line, 0, true, Grass::MAX_HEIGHT, true) * H_UNIT);
+        break;
+    case Object::TYPE::DIRT:
+        std::cout << "Width (" << static_cast<float>(dirt_width / H_UNIT) << "): ";
+        std::cin >> line;
+        
+        if (line != "-")
+            dirt_width = static_cast<int>(IoAssistance::get_valid_float("Invalid width -- try again: ", line) * H_UNIT);
+        
+
+        std::cout << "Height (" << static_cast<float>(dirt_height / V_UNIT) << "): ";
+        std::cin >> line;
+
+        if (line != "-")
+            dirt_height = static_cast<int>(IoAssistance::get_valid_float("Invalid height -- try again: ", line) * H_UNIT);
+        break;
+
+    case Object::TYPE::STONE_WALL:
+        std::cout << "Width (" << static_cast<float>(stone_wall_width / H_UNIT) << "): ";
+        std::cin >> line;
+        
+        if (line != "-")
+            stone_wall_width = static_cast<int>(IoAssistance::get_valid_float("Invalid width -- try again: ", line) * H_UNIT);
+        
+
+        std::cout << "Height (" << static_cast<float>(stone_wall_height / V_UNIT) << "): ";
+        std::cin >> line;
+
+        if (line != "-")
+            stone_wall_height = static_cast<int>(IoAssistance::get_valid_float("Invalid height -- try again: ", line) * H_UNIT);
+        break;
     default:
         throw std::invalid_argument("invalid object id to edit: " + std::to_string(static_cast<int>(selected_object)));
     }
@@ -167,7 +222,19 @@ HRESULT LevelEditorMenu::init(Graphics& g)
                 sprite_bounds[i] = { 0.0f, 0.0f, 32.0f, 32.0f };
                 break;
             case Object::TYPE::STONE:
-                hr = g.LoadBitmapFromFile((L".\\images\\stone.png"), &sprites[i]);
+                hr = g.LoadBitmapFromFile(L".\\images\\stone.png", &sprites[i]);
+                sprite_bounds[i] = { 0.0f, 0.0f, 32.0f, 32.0f };
+                break;
+            case Object::TYPE::DIRT:
+                hr = g.LoadBitmapFromFile(L".\\images\\dirt.png", &sprites[i]);
+                sprite_bounds[i] = { 0.0f, 0.0f, 32.0f, 32.0f };
+                break;
+            case Object::TYPE::GRASS:
+                hr = g.LoadBitmapFromFile(L".\\images\\grass.png", &sprites[i]);
+                sprite_bounds[i] = { 0.0f, 0.0f, 32.0f, 32.0f };
+                break;
+            case Object::TYPE::STONE_WALL:
+                hr = g.LoadBitmapFromFile(L".\\images\\stone_wall.png", &sprites[i]);
                 sprite_bounds[i] = { 0.0f, 0.0f, 32.0f, 32.0f };
                 break;
             default:

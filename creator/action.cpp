@@ -45,13 +45,7 @@ Action::Action(Action&& other)
     other.param = 0;
 }
 
-Action::~Action()
-{
-    // std::cout << 6.1 << '\n';
-    if (cleanup)
-        cleanup(param);
-    // std::cout << 6.2 << '\n';
-}
+Action::~Action() {}
 
 Action& Action::operator=(const Action& other) noexcept
 {

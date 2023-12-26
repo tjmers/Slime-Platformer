@@ -88,6 +88,10 @@ void Graphics::ClearScreen(float r, float g, float b)
 {
     render_target->Clear(D2D1::ColorF(r, g, b));
 }
+void Graphics::ClearScreen(const D2D1_COLOR_F& color)
+{
+    render_target->Clear(color);
+}
 
 void Graphics::DrawRect(const D2D1_RECT_F& rect, const float thickness) const
 {

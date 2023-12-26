@@ -78,5 +78,91 @@ float get_valid_float(const std::string& error_message, std::string& line_buffer
 
 }
 
+float get_valid_float(const std::string& error_message, std::string& line_buffer, float lower_bound, bool lower_included, float upper_bound, bool upper_included)
+{
+    if (lower_included && upper_included)
+    {
+        float num{0.f};
+        while (true)
+        {
+            try
+            {
+                num = std::stof(line_buffer);
+                if (num < lower_bound || num > upper_bound)
+                    throw std::invalid_argument("");
+                return num;
+            }
+            catch (const std::invalid_argument& e)
+            {
+                std::cout << error_message;
+                std::cin >> line_buffer;
+            }
+        }
+
+    }
+    else if (lower_included)
+    {
+        float num{0.f};
+        while (true)
+        {
+            try
+            {
+                num = std::stof(line_buffer);
+                if (num < lower_bound || num >= upper_bound)
+                    throw std::invalid_argument("");
+                return num;
+            }
+            catch (const std::invalid_argument& e)
+            {
+                std::cout << error_message;
+                std::cin >> line_buffer;
+            }
+        }
+
+    }
+    else if (upper_included)
+    {
+        float num{0.f};
+        while (true)
+        {
+            try
+            {
+                num = std::stof(line_buffer);
+                if (num <= lower_bound || num > upper_bound)
+                    throw std::invalid_argument("");
+                return num;
+            }
+            catch (const std::invalid_argument& e)
+            {
+                std::cout << error_message;
+                std::cin >> line_buffer;
+            }
+        }
+
+    }
+    else
+    {
+        float num{0.f};
+        while (true)
+        {
+            try
+            {
+                num = std::stof(line_buffer);
+                if (num <= lower_bound || num >= upper_bound)
+                    throw std::invalid_argument("");
+                return num;
+            }
+            catch (const std::invalid_argument& e)
+            {
+                std::cout << error_message;
+                std::cin >> line_buffer;
+            }
+        }
+
+
+    }
+
+
+}
 
 }

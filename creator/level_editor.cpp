@@ -6,11 +6,21 @@
 
 #include "../main/input.h"
 
+#include "../objects/decoy.h"
+#include "../objects/invisible_boundry.h"
+#include "../objects/stone.h"
+#include "../objects/spike.h"
+#include "../objects/wooden_floor.h"
+#include "../objects/grass.h"
+#include "../objects/dirt.h"
+#include "../objects/stone_wall.h"
+
 
 
 LevelEditor::LevelEditor()
     : file_path(get_file_path()), player_position(0.0f, 0.0f), objects({new Decoy(0, 0)}),
       player_bounds({ 1.0_hu, 1.0_vu, SCREEN_WIDTH - 1.0_hu, SCREEN_HEIGHT - 1.0_vu }), draw_player_bounds(true),
+      background({0, 0, 0, 1}),
       total_panned(0, 0), selected(false), object_selected(objects.end()),
       undos(), deleted_objects(),
       level_editor_menu() {}
@@ -19,12 +29,14 @@ LevelEditor::LevelEditor()
 LevelEditor::LevelEditor(const std::string& file_path)
     : file_path(std::move(file_path)), player_position(LevelLoader::get_player_position(this->file_path)), objects(LevelLoader::get_objects(this->file_path, player_position)),
       player_bounds(LevelLoader::get_player_bounds(this->file_path)), draw_player_bounds(true),
+      background(LevelLoader::get_background_color(this->file_path)),
       total_panned(0, 0), selected(false), object_selected(objects.end()),
       undos(), deleted_objects(),
       level_editor_menu() {}
 
 LevelEditor::LevelEditor(Vec2F player_position, float player_left_bound, float player_right_bound, float player_upper_bound, float player_lower_bound, std::vector<Object*>& objects)
     : player_position(player_position), player_bounds({ player_left_bound, player_upper_bound, player_right_bound, player_right_bound }), draw_player_bounds(true),
+      background(LevelLoader::get_background_color(this->file_path)),
       objects(objects), file_path(get_file_path()), total_panned(0, 0),
       selected(false), object_selected(objects.end()),
       undos(), deleted_objects(),
@@ -59,7 +71,7 @@ void LevelEditor::update()
 {
     if (Input::GetKeyDown(Key::ENTER) && Input::GetKeyFrame(Key::ENTER) == 0)
     {
-        LevelLoader::save_objects(file_path, objects, total_panned, player_position, player_bounds);
+        LevelLoader::save_objects(file_path, objects, total_panned, player_position, player_bounds, background);
         return;
     }
 
@@ -285,12 +297,13 @@ void LevelEditor::check_selected_object()
                     throw std::out_of_range("trying to bring back an object but the deleted objects deque is empty");
 
                 objects.insert(position, deleted_objects.back());
+                deleted_objects.pop_back();
                 object_selected = position;
                 selected = true;
             },
             [this] (Action::Param&)
             {
-                if (objects.empty())
+                if (deleted_objects.empty())
                     throw std::out_of_range("trying to cleanup the deleted objects but its empty");
                 delete deleted_objects.front();
                 deleted_objects.pop_front();
@@ -442,12 +455,29 @@ void LevelEditor::edit_level_properties()
         draw_player_bounds = true;
     else
         draw_player_bounds = false;
+
+    std::cout << "Background red (" << background.r << "): ";
+    std::cin >> line;
+    if (line != "-")
+        background.r = IoAssistance::get_valid_float("Red value must be a value between 0 and 1: ", line, 0.0f, true, 1.0f, true);
+        
+    std::cout << "Background green (" << background.g << "): ";
+    std::cin >> line;
+    if (line != "-")
+        background.g = IoAssistance::get_valid_float("Green value must be a value between 0 and 1: ", line, 0.0f, true, 1.0f, true);
+
+    std::cout << "Background blue (" << background.b << "): ";
+    std::cin >> line;
+    if (line != "-")
+        background.b = IoAssistance::get_valid_float("Blue value must be a value between 0 and 1: ", line, 0.0f, true, 1.0f, true);
     
+    std::cout << "Level editing complete\n";
 }
 
 
 void LevelEditor::draw(Graphics& g) const
 {
+    g.ClearScreen(background);
     for (auto i = std::next(objects.begin()); i != objects.end(); ++i)
         (*i)->draw(g);
     objects[0]->draw(g);
@@ -479,27 +509,28 @@ void LevelEditor::draw(Graphics& g) const
 HRESULT LevelEditor::init_resources(Graphics& g)
 {
     HRESULT hr = WoodenFloor::init(g);
-    int n = 0;
 
     if (SUCCEEDED(hr))
-    {
         hr = Spike::init(g);
-        ++n;
-    }
 
     if (SUCCEEDED(hr))
-    {
         hr = Decoy::init(g);
-        ++n;
-    }
 
     if (SUCCEEDED(hr))
-    {
         hr = Stone::init(g);
-        ++n;
-    }
 
-    hr = LevelEditorMenu::init(g);
+
+    if (SUCCEEDED(hr))
+        hr = Dirt::init(g);
+
+    if (SUCCEEDED(hr))
+        hr = Grass::init(g);
+
+    if (SUCCEEDED(hr))
+        hr = StoneWall::init(g);
+
+    if (SUCCEEDED(hr))
+        hr = LevelEditorMenu::init(g);
 
 
     return hr;
