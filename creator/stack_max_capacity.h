@@ -22,4 +22,4 @@ private:
 };
 
 // template class StackMaxCapacity<char, 10>; // used for testing in tests/stack_test.cpp
-template class StackMaxCapacity<Action, 100>;
+template class StackMaxCapacity<Action, 1000>;

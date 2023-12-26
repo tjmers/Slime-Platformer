@@ -13,13 +13,14 @@ public:
         {
             struct
             {
-                int fourByte1, fourByte2;
+                int four_byte1, four_byte2;
             };
             
-            long long eightByte; 
+            long long eight_byte; 
+            static_assert(sizeof(four_byte1) + sizeof(four_byte2) == sizeof(eight_byte));
         };
-        Param(int n1, int n2) : fourByte1(n1), fourByte2(n2) {}
-        Param(long long l) : eightByte(l) {}
+        Param(int n1, int n2) : four_byte1(n1), four_byte2(n2) {}
+        Param(long long l) : eight_byte(l) {}
     };
     
     Action();

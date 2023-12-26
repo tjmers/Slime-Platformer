@@ -8,11 +8,11 @@
 ID2D1Bitmap* WoodenFloor::sprite = nullptr;
 
 WoodenFloor::WoodenFloor(const int& x, const int& y, const int& width, const int& height)
-    : Object(make_collidables(x, x + width, y, height), std::vector<Collidable>()), position(x, y), width(width), height(height) {}
+    : Object(make_collidables(x, width, y), std::vector<Collidable>()), position(x, y), width(width), height(height) {}
 
-std::vector<Collidable> WoodenFloor::make_collidables(const int& x1, const int& x2, const int& y, const int& height)
+std::vector<Collidable> WoodenFloor::make_collidables(const int& x1, const int& width, const int& y)
 {
-    return {Collidable(Side::BOTTOM, x1, y, x2 - x1)};
+    return {Collidable(Side::BOTTOM, x1, y, width)};
 }
 
 void WoodenFloor::move(const Vec2I& amount)
@@ -57,6 +57,11 @@ HRESULT WoodenFloor::init(Graphics& g)
 
 #ifdef LEVEL_EDITOR
 
+WoodenFloor::WoodenFloor(const WoodenFloor& other)
+    : Object(make_collidables(other.position.x, other.width, other.position.y), {}), position(other.position), width(other.width), height(other.height) {}
+
+Object* WoodenFloor::clone() const { return new WoodenFloor(*this); }
+
 void WoodenFloor::write_to_file(std::ofstream& output_file) const
 {
     output_file << '\n' << std::to_string(static_cast<int>(Object::TYPE::WOODEN_FLOOR))
@@ -69,21 +74,35 @@ int WoodenFloor::get_y() const { return position.y; }
 int WoodenFloor::get_width() const { return width; }
 int WoodenFloor::get_height() const { return height; }
 
-void WoodenFloor::edit()
+void WoodenFloor::edit(StackMaxCapacity<Action, 1000>& undos)
 {
+    undos.push(Action(
+        [this] (Action::Param& old_width_and_height)
+        {
+            width = old_width_and_height.four_byte1;
+            height = old_width_and_height.four_byte2;
+        #ifdef DRAW_HITBOXES
+            collidables = make_collidables(position.x, width, position.y);
+        #endif
+        }, Action::Param(width, height)
+    ));
     std::string line;
-    std::cout << "Width (" << width << "): ";
+    std::cout << "Width (" << static_cast<float>(width / H_UNIT) << "): ";
     std::cin >> line;
     
     if (line != "-")
-        width = IoAssistance::get_valid_int("Invalid width -- try again: ", line);
+        width = static_cast<int>(IoAssistance::get_valid_float("Invalid width -- try again: ", line) * H_UNIT);
     
 
-    std::cout << "Height (" << height << "): ";
+    std::cout << "Height (" << static_cast<float>(height / V_UNIT) << "): ";
     std::cin >> line;
 
     if (line != "-")
-        height = IoAssistance::get_valid_int("Invalid height -- try again: ", line);
+        height = static_cast<int>(IoAssistance::get_valid_float("Invalid height -- try again: ", line) * V_UNIT);
+
+#ifdef DRAW_HITBOXES
+    collidables = make_collidables(position.x, width, position.y);
+#endif
 
 }
 

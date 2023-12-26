@@ -12,33 +12,23 @@ LevelEditor::LevelEditor()
     : file_path(get_file_path()), player_position(0.0f, 0.0f), objects({new Decoy(0, 0)}),
       player_bounds({ 1.0_hu, 1.0_vu, SCREEN_WIDTH - 1.0_hu, SCREEN_HEIGHT - 1.0_vu }), draw_player_bounds(true),
       total_panned(0, 0), selected(false), object_selected(objects.end()),
-      object_menu_open(false), object_selected_from_menu(static_cast<Object::TYPE>(0)),
       undos(), deleted_objects(),
-      wooden_floor_width(100), wooden_floor_height(100),
-      spike_rotation(Spike::Facing::UP),
-      invisible_boundry_side(Side::LEFT), invisible_boundry_length(0)
-{}
+      level_editor_menu() {}
+      
 
 LevelEditor::LevelEditor(const std::string& file_path)
     : file_path(std::move(file_path)), player_position(LevelLoader::get_player_position(this->file_path)), objects(LevelLoader::get_objects(this->file_path, player_position)),
       player_bounds(LevelLoader::get_player_bounds(this->file_path)), draw_player_bounds(true),
       total_panned(0, 0), selected(false), object_selected(objects.end()),
-      object_menu_open(false), object_selected_from_menu(static_cast<Object::TYPE>(0)),
       undos(), deleted_objects(),
-      wooden_floor_width(100), wooden_floor_height(100),
-      spike_rotation(Spike::Facing::UP),
-      invisible_boundry_side(Side::LEFT)
-{}
+      level_editor_menu() {}
 
 LevelEditor::LevelEditor(Vec2F player_position, float player_left_bound, float player_right_bound, float player_upper_bound, float player_lower_bound, std::vector<Object*>& objects)
     : player_position(player_position), player_bounds({ player_left_bound, player_upper_bound, player_right_bound, player_right_bound }), draw_player_bounds(true),
       objects(objects), file_path(get_file_path()), total_panned(0, 0),
-      selected(false), object_selected(objects.end()), object_menu_open(false), object_selected_from_menu(static_cast<Object::TYPE>(0)),
+      selected(false), object_selected(objects.end()),
       undos(), deleted_objects(),
-      wooden_floor_width(100), wooden_floor_height(100),
-      spike_rotation(Spike::Facing::UP),
-      invisible_boundry_side(Side::LEFT), invisible_boundry_length(0)
-{}
+      level_editor_menu() {}
 
 std::string LevelEditor::get_file_path()
 {
@@ -80,29 +70,11 @@ void LevelEditor::update()
     }
 
     if (Input::GetKeyDown(Key::SPACE) && Input::GetKeyFrame(Key::SPACE) == 0)
-        object_menu_open = !object_menu_open;
+        level_editor_menu.set_active(!level_editor_menu.get_active());
 
-    if (object_menu_open)
-    {
-        if (Input::GetKeyDown(Key::E) && Input::GetKeyFrame(Key::E) == 0)
-            edit_object_properties_from_menu();
-        
-        if (Input::GetLeftMouseDown() && Input::GetLeftMouseFrame() == 0)
-            create_object();
+    if (level_editor_menu.get_active() && level_editor_menu.update())
+        create_object();
 
-        if (Input::GetKeyDown(Key::DOWN) && Input::GetKeyFrame(Key::DOWN) == 0)
-            object_selected_from_menu = static_cast<Object::TYPE>((static_cast<int>(object_selected_from_menu) + 1) % static_cast<int>(Object::TYPE::COUNT));
-
-        if (Input::GetKeyDown(Key::UP) && Input::GetKeyFrame(Key::UP) == 0)
-        {
-            int decremented_object = static_cast<int>(object_selected_from_menu) - 1;
-            if (decremented_object == -1)
-                object_selected_from_menu = static_cast<Object::TYPE>(static_cast<int>(Object::TYPE::COUNT) - 1);
-            
-            else
-                object_selected_from_menu = static_cast<Object::TYPE>(decremented_object);
-        }
-    }
     else
     {
         update_selection();
@@ -114,8 +86,8 @@ void LevelEditor::update()
     }
 
     
-
-    update_pan();
+    if (!Input::GetKeyDown(Key::CTRL))
+        update_pan();
 }
 
 void LevelEditor::undo()
@@ -184,7 +156,7 @@ void LevelEditor::add_selected_object_change_to_undos()
     undos.push(Action(
         [this] (Action::Param& object_address)
         {
-            Object* target_object = reinterpret_cast<Object*>(object_address.eightByte);
+            Object* target_object = reinterpret_cast<Object*>(object_address.eight_byte);
             object_selected = std::find(objects.begin(), objects.end(), target_object);
 
             if (object_selected == objects.end())
@@ -193,6 +165,33 @@ void LevelEditor::add_selected_object_change_to_undos()
             selected = true;
         }, Action::Param(std::bit_cast<long long>(*object_selected))
     ));
+}
+
+void LevelEditor::add_adding_object_to_undos()
+{
+    if (selected)
+        undos.push(Action(
+            [this] (Action::Param& previously_selected_object)
+            {
+                delete objects[objects.size() - 1];
+                Object* object_to_be_selected = reinterpret_cast<Object*>(previously_selected_object.eight_byte);
+                auto i = std::find(objects.begin(), objects.end(), object_to_be_selected);
+                if (i == objects.end())
+                    throw std::out_of_range("cannot find object to make selected");
+
+                object_selected = i;
+                objects.pop_back();
+            }, Action::Param(std::bit_cast<long long>(*object_selected))
+        ));
+    else
+        undos.push(Action(
+            [this] (Action::Param&)
+            {
+                delete objects[objects.size() - 1];
+                objects.pop_back();
+                selected = false;
+            }
+        ));
 }
 
 void LevelEditor::update_pan()
@@ -228,6 +227,53 @@ void LevelEditor::update_pan()
 
 void LevelEditor::move_selected_object()
 {
+    if (object_selected != objects.begin())
+        check_selected_object();
+
+    Vec2I amount_to_move(0, 0);
+
+    if (Input::GetKeyDown(Key::LEFT) && (Input::GetKeyFrame(Key::LEFT) == 0 || Input::GetKeyDown(Key::SHIFT)))
+        amount_to_move.x -= OBJECT_MOVE_SPEED;
+
+    if (Input::GetKeyDown(Key::RIGHT) && (Input::GetKeyFrame(Key::RIGHT) == 0 || Input::GetKeyDown(Key::SHIFT)))
+        amount_to_move.x += OBJECT_MOVE_SPEED;
+
+    if (Input::GetKeyDown(Key::UP) && (Input::GetKeyFrame(Key::UP) == 0 || Input::GetKeyDown(Key::SHIFT)))
+        amount_to_move.y -= OBJECT_MOVE_SPEED;
+    
+    if (Input::GetKeyDown(Key::DOWN) && (Input::GetKeyFrame(Key::DOWN) == 0 || Input::GetKeyDown(Key::SHIFT)))
+        amount_to_move.y += OBJECT_MOVE_SPEED;
+
+
+    if (Input::GetKeyDown(Key::CTRL))
+        amount_to_move *= SPEED_MULTIPLIER;
+
+    check_front_ordering();
+
+    check_back_ordering();
+
+    if (!amount_to_move)
+        return;
+
+    (*object_selected)->move(amount_to_move);
+    
+
+    undos.push(Action([this, amount_to_move] (Action::Param&) {
+        (*object_selected)->move(amount_to_move * -1);
+    }));
+    
+  
+    if (object_selected == objects.begin())
+    {
+        player_position += amount_to_move; // move the player if the decoy was selected
+        return;
+    }
+
+
+}
+
+void LevelEditor::check_selected_object()
+{
     if (Input::GetKeyDown(Key::DEL) && Input::GetKeyFrame(Key::DEL) == 0)
     {
         selected = false;
@@ -256,54 +302,21 @@ void LevelEditor::move_selected_object()
         return;
     }
 
-
-    if (Input::GetKeyDown(Key::E) && Input::GetKeyFrame(Key::E) == 0)
-    {
-        // adding an undo to this would be complicated. so we wont.
-        std::cout << "Editing Object (-) to keep value same\n";
-        (*object_selected)->edit();
-        std::cout << "Edit complete\n";
+    if (Input::GetKeyDown(Key::D) && Input::GetKeyDown(Key::CTRL) && Input::GetKeyFrame(Key::D) == 0)
+    {   
+        Object* new_object = (*object_selected)->clone();
+        object_selected = objects.insert(std::next(object_selected), new_object);
+        add_adding_object_to_undos();
         return;
     }
 
 
-    Vec2I amount_to_move(0, 0);
-
-    if (Input::GetKeyDown(Key::LEFT))
-        amount_to_move.x -= OBJECT_MOVE_SPEED;
-
-    if (Input::GetKeyDown(Key::RIGHT))
-        amount_to_move.x += OBJECT_MOVE_SPEED;
-
-    if (Input::GetKeyDown(Key::UP))
-        amount_to_move.y -= OBJECT_MOVE_SPEED;
-    
-    if (Input::GetKeyDown(Key::DOWN))
-        amount_to_move.y += OBJECT_MOVE_SPEED;
-
-
-    if (Input::GetKeyDown(Key::SHIFT))
-        amount_to_move *= SPEED_MULTIPLIER;
-
-    check_front_ordering();
-
-    check_back_ordering();
-
-    if (!amount_to_move)
-        return;
-
-    (*object_selected)->move(amount_to_move);
-    
-
-    undos.push(Action([this, amount_to_move] (Action::Param&) {
-        (*object_selected)->move(amount_to_move * -1);
-    }));
-    
-  
-    if (object_selected == objects.begin())
+    if (Input::GetKeyDown(Key::E) && Input::GetKeyFrame(Key::E) == 0)
     {
-        player_position += amount_to_move; // move the player if the decoy was selected
-        return; // make sure that we dont move the order of the decoy
+        std::cout << "Editing Object (-) to keep value same\n";
+        (*object_selected)->edit(undos);
+        std::cout << "Edit complete\n";
+        return;
     }
 
 
@@ -318,7 +331,7 @@ void LevelEditor::check_front_ordering()
             undos.push(Action(
             [this] (Action::Param& object_address)
             {
-                Object* object = reinterpret_cast<Object*>(object_address.eightByte);
+                Object* object = reinterpret_cast<Object*>(object_address.eight_byte);
                 auto i = std::find(std::next(objects.begin()), objects.end(), object);
                 if (i == objects.end())
                     throw std::out_of_range("did not find object to move back in the ordering");
@@ -355,7 +368,7 @@ void LevelEditor::check_back_ordering()
                 [this] (Action::Param& object_address)
                 {
                 // move the element in the end to the element address stored in object_address
-                Object* object = reinterpret_cast<Object*>(object_address.eightByte);
+                Object* object = reinterpret_cast<Object*>(object_address.eight_byte);
                 auto i = std::find(std::next(objects.begin()), objects.end(), object);
                 if (i == objects.end())
                     throw std::out_of_range("did not find object to move fowards in the ordering");
@@ -387,95 +400,12 @@ void LevelEditor::check_back_ordering()
 
 void LevelEditor::create_object()
 {
-    switch (object_selected_from_menu)
-    {
-    case Object::TYPE::WOODEN_FLOOR:
-        objects.push_back(new WoodenFloor(Input::GetLeftMousePosition().x, Input::GetLeftMousePosition().y, wooden_floor_width, wooden_floor_height));
-        break;
-    case Object::TYPE::SPIKE:
-        objects.push_back(new Spike(spike_rotation, Input::GetLeftMousePosition().x, Input::GetLeftMousePosition().y));
-        break;
-    case Object::TYPE::INVISIBLE_BOUNDRY:
-        objects.push_back(new InvisibleBoundry(invisible_boundry_side, Input::GetLeftMousePosition().x, Input::GetLeftMousePosition().y, invisible_boundry_length));
-        break;
-    default:
-        throw std::invalid_argument("trying to create object with an invalid ID");
-    }
-    if (selected)
-        undos.push(Action(
-            [this] (Action::Param& previously_selected_object)
-            {
-                delete objects[objects.size() - 1];
-                Object* object_to_be_selected = reinterpret_cast<Object*>(previously_selected_object.eightByte);
-                auto i = std::find(objects.begin(), objects.end(), object_to_be_selected);
-                if (i == objects.end())
-                    throw std::out_of_range("cannot find object to make selected");
-
-                object_selected = i;
-                objects.pop_back();
-            }, Action::Param(std::bit_cast<long long>(*object_selected))
-        ));
-    else
-        undos.push(Action(
-            [this] (Action::Param&)
-            {
-                delete objects[objects.size() - 1];
-                objects.pop_back();
-                selected = false;
-            }
-        ));
+    objects.push_back(level_editor_menu.get_object(Input::GetLeftMousePosition()));
+    add_adding_object_to_undos();
     object_selected = std::prev(objects.end());
     selected = true;
 }
 
-
-void LevelEditor::edit_object_properties_from_menu()
-{
-    std::string line;
-    std::cout << "Enter a dash '-' to keep the same value\n";
-    switch (object_selected_from_menu)
-    {
-    case Object::TYPE::WOODEN_FLOOR:
-        std::cout << "Width (" << wooden_floor_width << "): ";
-        std::cin >> line;
-        
-        if (line != "-")
-            wooden_floor_width = IoAssistance::get_valid_int("Invalid width -- try again: ", line);
-        
-
-        std::cout << "Height (" << wooden_floor_height << "): ";
-        std::cin >> line;
-
-        if (line != "-")
-            wooden_floor_height = IoAssistance::get_valid_int("Invalid height -- try again: ", line);
-
-        break;
-    case Object::TYPE::SPIKE:
-        std::cout << "Enter rotation: left [0], right [1], up [2], down [3]: ";
-        std::cin >> line;
-
-        if (line != "-")
-            spike_rotation = static_cast<Spike::Facing>(IoAssistance::get_valid_int("Rotation must be a number: left [0], right [1], up [2], down [3]: ", line, 0, 4));
-
-        break;
-    case Object::TYPE::INVISIBLE_BOUNDRY:
-        std::cout << "Enter side: left [0], right [1], top [2], bottom [3]: ";
-        std::cin >> line;
-
-        if (line != "-")
-            invisible_boundry_side = static_cast<Side>(IoAssistance::get_valid_int("Side must be a number: left [0], right [1], top [2], bottom [3]: ", line, 0, 4));
-
-        std::cout << "Enter length for side (" << invisible_boundry_length << "): ";
-        std::cin >> line;
-        if (line != "-")
-            invisible_boundry_length = IoAssistance::get_valid_int("Length must be a valid number: ", line);
-
-        break;
-    default:
-        throw std::invalid_argument("invalid object id to edit: " + std::to_string(static_cast<int>(object_selected_from_menu)));
-    }
-    std::cout << "Object edited\n";
-}
 
 void LevelEditor::edit_level_properties()
 {
@@ -522,21 +452,9 @@ void LevelEditor::draw(Graphics& g) const
         (*i)->draw(g);
     objects[0]->draw(g);
 
-    if (object_menu_open)
+    if (level_editor_menu.get_active())
     {
-        g.SetColor(D2D1::ColorF::AntiqueWhite);
-        g.FillRect(D2D1::RectF(36_hu, 0, SCREEN_WIDTH, SCREEN_HEIGHT));
-
-        g.DrawBitmap(object_menu_sprites[static_cast<int>(object_selected_from_menu)], object_menu_sprite_bounds[static_cast<int>(object_selected_from_menu)], { 39.0_hu, 13.0_vu, 45.0_hu, 19.0_vu});
-        g.DrawBitmap(object_menu_sprites[(static_cast<int>(object_selected_from_menu) + 1) % static_cast<int>(Object::TYPE::COUNT)], object_menu_sprite_bounds[(static_cast<int>(object_selected_from_menu) + 1) % static_cast<int>(Object::TYPE::COUNT)], { 40.0_hu, 23.0_vu, 45.0_hu, 28.0_vu});
-        int next_object = static_cast<int>(object_selected_from_menu) - 1;
-        if (next_object < 0)
-            next_object = static_cast<int>(Object::TYPE::COUNT) - 1;
-
-        g.DrawBitmap(object_menu_sprites[next_object], object_menu_sprite_bounds[next_object], { 40.0_hu, 5_vu, 45.0_hu, 9.0_vu });
-
-        g.SetColor(D2D1::ColorF::Black);
-        g.DrawRect(D2D1::RectF(39.0_hu, 13.0_vu, 45.0_hu, 19.0_vu), 3.0f);
+        level_editor_menu.draw(g);
     }
     else if (selected)
     {
@@ -556,44 +474,33 @@ void LevelEditor::draw(Graphics& g) const
     }
 }
 
-ID2D1Bitmap* LevelEditor::object_menu_sprites[static_cast<int>(Object::TYPE::COUNT)];
-D2D1_RECT_F LevelEditor::object_menu_sprite_bounds[static_cast<int>(Object::TYPE::COUNT)];
+
 
 HRESULT LevelEditor::init_resources(Graphics& g)
 {
     HRESULT hr = WoodenFloor::init(g);
+    int n = 0;
 
     if (SUCCEEDED(hr))
-        hr = Spike::init(g);
-
-    if (SUCCEEDED(hr))
-        hr = Decoy::init(g);
-
-    for (int i = 0; i < static_cast<int>(Object::TYPE::COUNT); ++i)
     {
-        if (SUCCEEDED(hr))
-        {
-            switch (static_cast<Object::TYPE>(i))
-            {
-            case Object::TYPE::WOODEN_FLOOR:
-                hr = g.LoadBitmapFromFile(L".\\images\\wooden_floor.png", &object_menu_sprites[i]);
-                object_menu_sprite_bounds[i] = { 0.0f, 0.0f, 32.0f, 32.0f };
-                break;
-            case Object::TYPE::SPIKE:
-                hr = g.LoadBitmapFromFile(L".\\images\\spikes.png", &object_menu_sprites[i]);
-                object_menu_sprite_bounds[i] = { 64.0f, 0.0f, 96.0f, 32.0f };
-                break;
-            case Object::TYPE::INVISIBLE_BOUNDRY:
-                hr = g.LoadBitmapFromFile(L".\\images\\red_line.png", &object_menu_sprites[i]);
-                object_menu_sprite_bounds[i] = { 0.0f, 0.0f, 32.0f, 32.0f };
-                break;
-            default:
-                throw std::invalid_argument("trying to initialize a sprite with an invalid type");
-            }
-        } else {
-            std::cout << i << '\n';
-        }
+        hr = Spike::init(g);
+        ++n;
     }
+
+    if (SUCCEEDED(hr))
+    {
+        hr = Decoy::init(g);
+        ++n;
+    }
+
+    if (SUCCEEDED(hr))
+    {
+        hr = Stone::init(g);
+        ++n;
+    }
+
+    hr = LevelEditorMenu::init(g);
+
 
     return hr;
 }

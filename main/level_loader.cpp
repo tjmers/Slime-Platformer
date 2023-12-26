@@ -5,6 +5,7 @@
 
 #include "../objects/decoy.h"
 #include "../objects/invisible_boundry.h"
+#include "../objects/stone.h"
 #include "../objects/spike.h"
 #include "../objects/wooden_floor.h"
 
@@ -92,6 +93,9 @@ std::vector<Object*> get_objects(const std::string& file_path, const Vec2I& play
                 break;
             case Object::TYPE::DECOY:
                 throw std::invalid_argument("cannot interpret a decoy");
+            case Object::TYPE::STONE:
+                interpret_stone(line, input_file, objects);
+                break;
 
             default:
                 throw std::invalid_argument("error while parsing file by loading object with id: " + line);
@@ -138,6 +142,9 @@ std::vector<Object*> get_objects(const std::string& file_path)
                 break;
             case Object::TYPE::DECOY:
                 throw std::invalid_argument("cannot interpret a decoy");
+            case Object::TYPE::STONE:
+                interpret_stone(line, input_file, objects);
+                break;
 
             default:
                 throw std::invalid_argument("error while parsing file by loading object with id: " + line);
@@ -194,6 +201,19 @@ void interpret_invisible_boundry(std::string& line, std::ifstream& input_file, s
         length = static_cast<int>(std::stof(line) * V_UNIT);
 
     objects.push_back(new InvisibleBoundry(side, x, y, length));
+}
+
+void interpret_stone(std::string& line, std::ifstream& input_file, std::vector<Object*>& objects)
+{
+    std::getline(input_file, line);
+    int x = static_cast<int>(std::stof(line) * H_UNIT);
+    std::getline(input_file, line);
+    int y = static_cast<int>(std::stof(line) * V_UNIT);
+    std::getline(input_file, line);
+    int width = static_cast<int>(std::stof(line) * H_UNIT);
+    std::getline(input_file, line);
+    int height = static_cast<int>(std::stof(line) * V_UNIT);
+    objects.push_back(new Stone({x, y}, width, height));
 }
 
 #ifdef LEVEL_EDITOR

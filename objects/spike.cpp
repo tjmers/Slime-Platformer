@@ -56,6 +56,13 @@ void Spike::draw(Graphics& g) const
 
 
 #ifdef LEVEL_EDITOR
+
+Spike::Spike(const Spike& other)
+    : Object({}, make_killables(static_cast<Facing>(static_cast<int>(sprite_box.left) / 32), other.position.x, other.position.y)),
+      position(other.position), sprite_box(other.sprite_box) {}
+
+Object* Spike::clone() const { return new Spike(*this); }
+
 void Spike::write_to_file(std::ofstream& output_file) const
 {
     output_file << '\n' << std::to_string(static_cast<int>(Object::TYPE::SPIKE))
@@ -68,16 +75,28 @@ int Spike::get_y() const { return position.y; }
 int Spike::get_width() const { return WIDTH; }
 int Spike::get_height() const { return HEIGHT; }
 
-void Spike::edit()
+void Spike::edit(StackMaxCapacity<Action, 1000>& undos)
 {
+    undos.push(Action(
+        [this] (Action::Param& old_direction)
+        {
+        #ifdef DRAW_HITBOXES
+            killables = make_killables(static_cast<Spike::Facing>(old_direction.four_byte1), position.x, position.y);
+        #endif
+            sprite_box = D2D1::RectF(static_cast<int>(old_direction.four_byte1) * 32, 0.0f, (static_cast<int>(old_direction.four_byte1) + 1) * 32, 32.0f);
+        }, Action::Param(static_cast<int>(sprite_box.left) / 32, 0)
+    ));
     std::string line;
     std::cout << "Enter rotation: left [0], right [1], up [2], down [3]: ";
     std::cin >> line;
 
     if (line != "-")
     {
-        Facing new_direction = static_cast<Spike::Facing>(IoAssistance::get_valid_int("Rotation must be a number: left [0], right [1], up [2], down [3]: ", line, 0, 4));
-        killables = make_killables(new_direction, position.x, position.y);
+        int new_direction = IoAssistance::get_valid_int("Rotation must be a number: left [0], right [1], up [2], down [3]: ", line, 0, 4);
+    #ifdef DRAW_HITBOXES
+        killables = make_killables(static_cast<Facing>(new_direction), position.x, position.y);
+    #endif
+        sprite_box = D2D1::RectF(static_cast<int>(new_direction) * 32, 0.0f, (static_cast<int>(new_direction) + 1) * 32, 32.0f);
     }
 
 

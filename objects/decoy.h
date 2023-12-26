@@ -16,12 +16,13 @@ public:
     static HRESULT init(Graphics& g);
 
 #ifdef LEVEL_EDITOR
+    Object* clone() const override { return nullptr; }
     void write_to_file(std::ofstream& output_file) const override;
     int get_x() const override;
     int get_y() const override;
     int get_width() const override;
     int get_height() const override;
-    void edit() override;
+    void edit(StackMaxCapacity<Action, 1000>&) override;
 #endif
 private:
     Vec2I position;

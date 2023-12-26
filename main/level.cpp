@@ -4,6 +4,7 @@
 
 #include "input.h"
 #include "level_loader.h"
+#include "../objects/stone.h"
 #include "../objects/spike.h"
 #include "../objects/invisible_boundry.h"
 #include "../objects/wooden_floor.h"
@@ -90,12 +91,15 @@ void Level::reset()
 HRESULT Level::init_resources(Graphics& g)
 {
     HRESULT hr = Player::init(g);
+
     if (SUCCEEDED(hr))
         hr = WoodenFloor::init(g);
 
     if (SUCCEEDED(hr))
         hr = Spike::init(g);
 
+    if (SUCCEEDED(hr))
+        hr = Stone::init(g);
 
     return hr;
 }

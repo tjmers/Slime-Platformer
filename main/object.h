@@ -4,6 +4,10 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+
+#include "../creator/stack_max_capacity.h"
+#include "../creator/action.h"
+
 #endif
 #include <vector>
 
@@ -23,9 +27,10 @@ public:
     inline const std::vector<Collidable>& get_killables() const { return killables; }
     enum class TYPE
     {
-        DECOY = -1, WOODEN_FLOOR, SPIKE, INVISIBLE_BOUNDRY, COUNT
+        DECOY = -1, WOODEN_FLOOR, SPIKE, INVISIBLE_BOUNDRY, STONE, COUNT
     };
 #ifdef LEVEL_EDITOR
+    virtual Object* clone() const = 0;
     virtual int get_x() const = 0; // ------\.
     virtual int get_y() const = 0; //       These just are used for the level editor to determine
     virtual int get_width() const = 0;//    /               if an click intersects an object to select it
@@ -34,7 +39,8 @@ public:
 
     virtual void write_to_file(std::ofstream& output_file) const = 0;
 
-    virtual void edit() = 0;
+    
+    virtual void edit(StackMaxCapacity<Action, 1000>& undos) = 0;
 #endif
 
 protected:

@@ -76,7 +76,7 @@ void Player::update_velocity(const float& multiplier)
 
     update_velocity_y(multiplier);
 
-    clamp_velocity();
+    clamp_velocity(multiplier);
 
     // if (velocity.y != 0)
     //     std::cout << "Y VELOCITY: " << velocity.y << '\n';

@@ -1,22 +1,20 @@
 #pragma once
 
-#include <vector>
-
 #include "../main/object.h"
-#include "../creator/stack_max_capacity.h"
-#include "../creator/action.h"
 
 
-class WoodenFloor : public Object
+class Stone : public Object
 {
+
 public:
-    WoodenFloor(const int& x, const int& y, const int& width, const int& height);
+    Stone(const Vec2I& position, const int width, const int height);
+
     void move(const Vec2I& amount) override;
     void draw(Graphics& g) const override;
-    static HRESULT init(Graphics& g);
+
 
 #ifdef LEVEL_EDITOR
-    WoodenFloor(const WoodenFloor& other);
+    Stone(const Stone& other);
     Object* clone() const override;
     int get_x() const override;
     int get_y() const override;
@@ -25,15 +23,20 @@ public:
     void write_to_file(std::ofstream& output_file) const override;
     void edit(StackMaxCapacity<Action, 1000>& undos) override;
 #endif
+
+    static HRESULT init(Graphics& g);
+
 private:
     Vec2I position;
-    
-    #ifndef LEVEL_EDITOR
+#ifndef LEVEL_EDITOR
     const
-    #endif
+#endif
     int width, height;
 
-    static std::vector<Collidable> make_collidables(const int& x1, const int& width, const int& y);
+    inline static std::vector<Collidable> make_collidables(int x, int y, int width, int height)
+    {
+        return { {Side::BOTTOM, x, y, width}, {Side::LEFT, x + width, y, height}, {Side::TOP, x, y + height, width}, {Side::RIGHT, x, y, height} };
+    }
+
     static ID2D1Bitmap* sprite;
-    constexpr static int sprite_width = 128, sprite_height = 32;
 };

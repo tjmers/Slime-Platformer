@@ -41,6 +41,6 @@ int Decoy::get_y() const { return position.y; }
 int Decoy::get_width() const { return WIDTH; }
 int Decoy::get_height() const { return HEIGHT; }
 
-void Decoy::edit() {}
+void Decoy::edit(StackMaxCapacity<Action, 1000>&) {}
 
 #endif

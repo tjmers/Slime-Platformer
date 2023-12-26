@@ -9,8 +9,13 @@ InvisibleBoundry::InvisibleBoundry(Side side, int x, int y, int length)
     : Object({Collidable(side, x, y, length)}, {}) {}
 
 
-
 #ifdef LEVEL_EDITOR
+
+InvisibleBoundry::InvisibleBoundry(const InvisibleBoundry& other)
+    : Object({Collidable(other.collidables[0].get_side(), other.collidables[0].get_x(), other.collidables[0].get_y(), other.collidables[0].get_length())}, {}) {}
+
+Object* InvisibleBoundry::clone() const { return new InvisibleBoundry(*this); }
+
 void InvisibleBoundry::write_to_file(std::ofstream& output_file) const
 {
     output_file << '\n' << std::to_string(static_cast<int>(Object::TYPE::INVISIBLE_BOUNDRY))
@@ -48,8 +53,15 @@ int InvisibleBoundry::get_height() const
 }
 
 
-void InvisibleBoundry::edit()
+void InvisibleBoundry::edit(StackMaxCapacity<Action, 1000>& undos)
 {
+    undos.push(Action(
+        [this] (Action::Param& data)
+        {
+            collidables[0].set_side(static_cast<Side>(data.four_byte1));
+            collidables[0].set_length(data.four_byte2);
+        }, Action::Param(static_cast<int>(collidables[0].get_side()), collidables[0].get_length())
+    ));
     std::string line;
     std::cout << "Enter side: left [0], right [1], top [2], bottom [3]: ";
     std::cin >> line;

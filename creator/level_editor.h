@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "action.h"
+#include "level_editor_menu.h"
 #include "stack_max_capacity.h"
 #include "../main/level_loader.h"
 #include "../main/io_assistance.h"
@@ -18,6 +19,7 @@
 #include "../main/vec2.h"
 #include "../objects/decoy.h"
 #include "../objects/invisible_boundry.h"
+#include "../objects/stone.h"
 #include "../objects/spike.h"
 #include "../objects/wooden_floor.h"
 
@@ -55,31 +57,19 @@ private:
     void check_front_ordering();
     void check_back_ordering();
     void create_object();
-    /// @brief Uses the terminal to edit the object properties
-    void edit_object_properties_from_menu();
     void edit_level_properties();
-
-    bool object_menu_open;
-    Object::TYPE object_selected_from_menu;
+    void add_adding_object_to_undos();
+    void check_selected_object();
 
     static_assert(sizeof(long long) == sizeof(void*), "long long size is not the same as void* size");
     static_assert(sizeof(long long) == sizeof(int) * 2, "long long size is not twice the size of an int");
     static_assert(sizeof(Object*) == sizeof(std::vector<Object*>::iterator), "size of object vector iterator is not the same as the Object*");
-    StackMaxCapacity<Action, 100> undos;
+    StackMaxCapacity<Action, 1000> undos;
     void undo();
     void add_selected_object_change_to_undos();
 
+    LevelEditorMenu level_editor_menu;
+
     std::deque<Object*> deleted_objects;
-
-    // object properties
-    int wooden_floor_width, wooden_floor_height;
-    Spike::Facing spike_rotation;
-    Side invisible_boundry_side;
-    int invisible_boundry_length;
-
-    // object sprites in the object menu
-    static ID2D1Bitmap* object_menu_sprites[static_cast<int>(Object::TYPE::COUNT)];
-    static D2D1_RECT_F object_menu_sprite_bounds[static_cast<int>(Object::TYPE::COUNT)];
-
 
 };
