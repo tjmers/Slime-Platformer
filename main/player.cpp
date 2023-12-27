@@ -15,12 +15,12 @@ HRESULT Player::init(Graphics& g)
 Player::Player(const float x, const float y, const int left_limit, const int right_limit, const int top_limit, const int bottom_limit)
     : position(x, y), velocity(0.0f, 0.0f), starting_position(x, y), standing_on(nullptr), updates_since_falling(10), // arbritray number bigger than coyote frames
       left_limit(left_limit), right_limit(right_limit - WIDTH), top_limit(top_limit), bottom_limit(bottom_limit - HEIGHT), sprite_cycle(0), facing(Direction::LEFT),
-      sliding_left(nullptr), sliding_right(nullptr) {}
+      sliding_left(nullptr), sliding_right(nullptr), jumping(false) {}
 
 Player::Player(const Vec2F& position, const D2D1_RECT_F& player_bounds)
     : position(position), velocity(0.0f, 0.0f), starting_position(position), standing_on(nullptr), updates_since_falling(10), // arbritray number bigger than coyote frames
       left_limit(player_bounds.left), right_limit(player_bounds.right - WIDTH), top_limit(player_bounds.top), bottom_limit(player_bounds.bottom - HEIGHT), sprite_cycle(0), facing(Direction::LEFT),
-      sliding_left(nullptr), sliding_right(nullptr) {}
+      sliding_left(nullptr), sliding_right(nullptr), jumping(false) {}
 
 
 void Player::reset()
@@ -32,6 +32,7 @@ void Player::reset()
     sliding_left = nullptr;
     sliding_right = nullptr;
     updates_since_falling = 10;
+    jumping = false;
 }
 
 
@@ -113,8 +114,18 @@ void Player::update_velocity_y(const float& multiplier)
     { // jump
         velocity.y = JUMP_VELOCITY;
         standing_on = nullptr;
+        jumping = true;
+        current_jumping_velocity = JUMP_VELOCITY;
     }
-    else if (standing_on == nullptr)
+    else if (jumping)
+    {
+        current_jumping_velocity *= JUMP_MULTI;
+        velocity.y += current_jumping_velocity;
+        if (!Input::GetKeyDown(Key::W))
+            jumping = false;
+    }
+
+    if (standing_on == nullptr)
     { // gravity
         velocity.y += GRAV_ACC * multiplier;
     }
@@ -154,6 +165,9 @@ void Player::wall_jump()
         velocity.x = -MAX_X_VEL * 3;
         sliding_right = nullptr;
     }
+
+    jumping = true;
+    current_jumping_velocity = WALL_JUMP_VELOCITY;
 }
 
 void Player::update_direction_facing(float old_velocity)
@@ -188,7 +202,7 @@ bool Player::collides(const Collidable& collidable) const
         return position.x + WIDTH >= collidable.get_x() && position.x <= collidable.get_x() + collidable.get_length() &&
                position.y <= collidable.get_y() && position.y - velocity.y >= collidable.get_y();
     case Side::BOTTOM:
-        return position.x + WIDTH >= collidable.get_x() && position.x <= collidable.get_x() + collidable.get_length() &&
+        return position.x + WIDTH > collidable.get_x() && position.x < collidable.get_x() + collidable.get_length() &&
                position.y >= collidable.get_y() - HEIGHT && position.y - velocity.y <= collidable.get_y() - HEIGHT;
     case Side::LEFT:
         return sliding_left == nullptr &&

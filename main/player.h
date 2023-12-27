@@ -74,9 +74,12 @@ private:
 
 
     constexpr static float MAX_X_VEL = 0.25_hu, X_GO_ACC = 0.025_hu, X_STOP_ACC = 0.06_hu, SLOW_FACTOR = 0.3f; // slow factor is how fast you start slowing down when youre above max speed
-    constexpr static float MAX_Y_VEL = 0.5_vu, JUMP_VELOCITY = -1_vu, GRAV_ACC = 0.029_vu;
+    constexpr static float MAX_Y_VEL = 0.5_vu, JUMP_VELOCITY = -0.25_vu, GRAV_ACC = 0.029_vu, JUMP_MULTI = 0.75; // jump multi the the number that the current_jumping_velocty gets multiplied by every frame for the variable jump height
     constexpr static float SLIDING_MULTIPLIER = 0.3f, MAX_Y_VEL_SLIDING = 0.4_vu;
-    constexpr static float WALL_JUMP_VELOCITY = JUMP_VELOCITY * 0.5f;
+    constexpr static float WALL_JUMP_VELOCITY = JUMP_VELOCITY * 0.5;
+
+    bool jumping;
+    float current_jumping_velocity;
 
     inline void clamp_y_sliding_velocity(Vec2F& vel)
     {
