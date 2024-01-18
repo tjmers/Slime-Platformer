@@ -18,3 +18,6 @@ Z: undo
 
 Currently no real levels, but some will be made and a level selector screeen.
 If you try downloading an execultable to play, make sure that the images FOLDER is in the same directory as the executable
+
+
+Currently working on making the player and game a state machine with inheritance to keep track of the current state. Is taking a long time, but should hopefully speed up adding new states in the future.
